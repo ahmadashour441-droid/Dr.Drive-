@@ -543,20 +543,12 @@ async function closeWeek() {
           </select>
 
           <button
+  onClick={() => setShowCloseDialog(true)}
+  className="rounded-xl bg-red-600 px-6 py-3 text-white font-bold hover:bg-red-700"
+>
+  إغلاق الأسبوع
+</button>
 
-            onClick={() => {
-  console.log(users);
-  alert(users.name);
-  setSelectedUser(users);
-}}
-
-            className="rounded-xl bg-red-600 px-6 text-white font-bold hover:bg-red-700"
-
-          >
-
-            إغلاق الأسبوع
-
-          </button>
 
         </div>
 
