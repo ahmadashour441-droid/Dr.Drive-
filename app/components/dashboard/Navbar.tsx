@@ -8,10 +8,10 @@ type Props = {
 
 export default function Navbar({ fullName }: Props) {
   return (
-    <header className="h-20 bg-white border-b px-6 flex items-center justify-between">
+    <header className="h-16 md:h-20 bg-white border-b px-4 md:px-6 flex items-center justify-between">
 
       <div className="flex items-center gap-3">
-        <button className="lg:hidden">
+        <button className="lg:hidden rounded-lg p-2 hover:bg-gray-100">
           <Menu size={26} />
         </button>
 

@@ -98,7 +98,7 @@ return (
 
   </div>
 
-  <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-5">
+  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
 
     <div className="rounded-2xl border bg-white p-6 shadow">
 
@@ -186,7 +186,7 @@ return (
 
   <div className="overflow-x-auto">
 
-    <table className="min-w-full">
+    <table className="min-w-[1100px]">
 
       <thead className="bg-gray-100">
 

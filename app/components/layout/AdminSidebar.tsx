@@ -48,7 +48,7 @@ export default function AdminSidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="flex h-screen w-72 flex-shrink-0 flex-col bg-slate-900 text-white">
+    <aside className="flex h-screen w-64 md:w-72 flex-shrink-0 flex-col bg-slate-900 text-white">
 
       <div className="flex h-20 items-center justify-center border-b border-slate-700">
 
@@ -59,7 +59,7 @@ export default function AdminSidebar() {
           </div>
 
           <div>
-            <h1 className="text-lg font-bold">
+            <h1 className="text-base md:text-lg font-bold">
               DR.Drive وصلني الآن
             </h1>
 
@@ -72,7 +72,7 @@ export default function AdminSidebar() {
 
       </div>
 
-      <nav className="flex-1 space-y-2 px-4 py-6">
+      <nav className="flex-1 space-y-2 px-3 md:px-4 py-4 md:py-6">
 
         {items.map((item) => {
 
@@ -97,7 +97,7 @@ export default function AdminSidebar() {
 
               <Icon size={20} />
 
-              <span>
+              <span className="text-sm md:text-base">
                 {item.name}
               </span>
 

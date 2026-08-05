@@ -276,7 +276,7 @@ const floorBalance =
 
               <div className="overflow-x-auto">
 
-                <table className="min-w-full">
+                <table className="min-w-[1100px]">
 
                   <thead className="bg-slate-100">
 

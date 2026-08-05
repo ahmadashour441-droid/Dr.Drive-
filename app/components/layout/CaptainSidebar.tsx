@@ -30,15 +30,15 @@ export default function CaptainSidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="w-72 bg-slate-900 text-white flex flex-col">
+    <aside className="w-64 md:w-72 bg-slate-900 text-white flex flex-col">
       <div className="border-b border-slate-700 p-6">
-        <h1 className="text-2xl font-bold">Dr.Drive</h1>
+        <h1 className="text-xl md:text-2xl font-bold">Dr.Drive</h1>
         <p className="mt-2 text-sm text-slate-400">
           لوحة تحكم الكابتن
         </p>
       </div>
 
-      <nav className="flex-1 p-4 space-y-2">
+      <nav className="flex-1 p-3 md:p-4 space-y-2">
         {links.map((link) => {
           const active =
             pathname === link.href ||
