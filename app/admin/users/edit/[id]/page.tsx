@@ -74,9 +74,9 @@ export default function EditUserPage() {
     vehicle_type: vehicleType,
     vehicle_number: vehicleNumber,
     status: status,
-    is_admin: role === "admin",
-    is_captain: role === "captain",
-    is_producer: role === "producer",
+    is_admin: false,
+is_captain: true,
+is_producer: true,
   })
   .eq("id", params.id)
   .select();

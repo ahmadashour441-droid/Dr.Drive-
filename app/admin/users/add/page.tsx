@@ -16,35 +16,30 @@ export default function AddUserPage() {
 
   const [vehicleType, setVehicleType] = useState("");
   const [vehicleNumber, setVehicleNumber] = useState("");
-
   const [role, setRole] = useState("captain");
 
   async function saveUser() {
-    if (
-      !fullName ||
-      !phone ||
-      !loginCode
-    ) {
+    if (!fullName || !phone || !loginCode) {
       alert("يرجى تعبئة جميع الحقول");
       return;
     }
 
     setLoading(true);
 
-const response = await fetch("/api/users/create", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    full_name: fullName,
-    phone,
-    login_code: loginCode,
-    vehicle_type: vehicleType,
-    vehicle_number: vehicleNumber,
-    role,
-  }),
-});
+    const response = await fetch("/api/users/create", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        full_name: fullName,
+        phone,
+        login_code: loginCode,
+        role,
+        vehicle_type: vehicleType,
+        vehicle_number: vehicleNumber,
+      }),
+    });
 
 const result = await response.json();
 
@@ -114,16 +109,10 @@ router.push("/admin/users");
               </div>
 
               <div>
-                <label className="font-medium">
-                  الصلاحية
-                </label>
-
                 <select
                   className="w-full mt-2 border rounded-lg p-3"
                   value={role}
-                  onChange={(e) =>
-                    setRole(e.target.value)
-                  }
+                  onChange={(e) => setRole(e.target.value)}
                 >
                   <option value="captain">
                     كابتن
