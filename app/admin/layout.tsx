@@ -1,8 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-import AdminSidebar from "../components/layout/AdminSidebar";
-import Navbar from "../components/dashboard/Navbar";
+import AdminShell from "../components/layout/AdminShell";
 
 export default async function AdminLayout({
   children,
@@ -30,20 +29,8 @@ export default async function AdminLayout({
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-100">
-
-      <AdminSidebar />
-
-      <div className="flex flex-1 flex-col">
-
-        <Navbar fullName={user.full_name} />
-
-        <main className="flex-1 overflow-auto p-4 md:p-8">
-          {children}
-        </main>
-
-      </div>
-
-    </div>
+    <AdminShell fullName={user.full_name}>
+      {children}
+    </AdminShell>
   );
 }

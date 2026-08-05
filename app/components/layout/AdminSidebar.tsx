@@ -44,7 +44,13 @@ const items = [
   },
 ];
 
-export default function AdminSidebar() {
+type Props = {
+  onNavigate?: () => void;
+};
+
+export default function AdminSidebar({
+  onNavigate,
+}: Props) {
   const pathname = usePathname();
 
   return (
@@ -86,8 +92,9 @@ export default function AdminSidebar() {
           return (
 
             <Link
-              key={item.href}
-              href={item.href}
+  key={item.href}
+  href={item.href}
+  onClick={onNavigate}
               className={`flex items-center gap-3 rounded-xl px-4 py-3 transition-all ${
                 active
                   ? "bg-blue-600"
