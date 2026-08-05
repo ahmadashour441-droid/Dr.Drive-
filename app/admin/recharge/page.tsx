@@ -23,7 +23,7 @@ const requests =
 
   <div className="overflow-hidden rounded-2xl bg-white shadow">
 
-    <table className="min-w-[1100px]">
+    <table className="min-w-[1300px] w-full">
 
       <thead className="bg-gray-100">
 

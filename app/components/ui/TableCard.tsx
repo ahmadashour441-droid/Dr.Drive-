@@ -18,7 +18,7 @@ export default function TableCard({
         </h2>
       </div>
 
-      <div className="overflow-x-auto">
+      <div className="w-full overflow-x-auto rounded-2xl">
         {children}
       </div>
 

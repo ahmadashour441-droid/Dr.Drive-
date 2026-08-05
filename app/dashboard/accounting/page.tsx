@@ -82,7 +82,7 @@ export default async function CaptainAccountingPage() {
 
       <div className="overflow-hidden rounded-xl bg-white shadow">
 
-        <table className="min-w-[1100px]">
+        <table className="min-w-[1300px] w-full">
           <thead className="bg-slate-100">
 
             <tr>

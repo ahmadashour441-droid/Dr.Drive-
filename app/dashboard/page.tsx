@@ -184,9 +184,9 @@ return (
 
   </div>
 
-  <div className="overflow-x-auto">
+  <div className="w-full overflow-x-auto rounded-2xl">
 
-    <table className="min-w-[1100px]">
+    <table className="min-w-[1300px] w-full">
 
       <thead className="bg-gray-100">
 
