@@ -65,20 +65,25 @@ export default function EditUserPage() {
 
     setSaving(true);
 
-    const { error } = await supabase
-      .from("Users")
-      .update({
-        full_name: fullName,
-        phone: phone,
-        login_code: loginCode,
-        vehicle_type: vehicleType,
-        vehicle_number: vehicleNumber,
-        status: status,
-        is_admin: role === "admin",
-        is_captain: role === "captain",
-        is_producer: role === "producer",
-      })
-      .eq("id", params.id);
+    const result = await supabase
+  .from("Users")
+  .update({
+    full_name: fullName,
+    phone: phone,
+    login_code: loginCode,
+    vehicle_type: vehicleType,
+    vehicle_number: vehicleNumber,
+    status: status,
+    is_admin: role === "admin",
+    is_captain: role === "captain",
+    is_producer: role === "producer",
+  })
+  .eq("id", params.id)
+  .select();
+
+console.log(result);
+
+const error = result.error;
 
     setSaving(false);
 
