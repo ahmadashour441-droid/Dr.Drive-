@@ -132,13 +132,14 @@ if (!response.ok) {
 
           <div className="mt-3 text-xl font-bold text-green-700">
 
-            زين كاش
+           orange money
+           omar al shrman
 
           </div>
 
           <div className="text-2xl font-bold">
 
-            0792026321
+            0775200256
 
           </div>
 
