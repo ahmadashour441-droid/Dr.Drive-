@@ -1,32 +1,51 @@
 "use client";
 
-import { Bell, Search } from "lucide-react";
+import { Bell, Menu, Search, UserCircle2 } from "lucide-react";
 
 interface HeaderProps {
   title: string;
   subtitle?: string;
+  onMenuClick?: () => void;
+  fullName?: string;
 }
 
 export default function Header({
   title,
   subtitle,
+  onMenuClick,
+  fullName,
 }: HeaderProps) {
   return (
-    <header className="bg-white border border-slate-200 rounded-3xl shadow-sm px-8 py-6 flex items-center justify-between gap-6">
+    <header className="sticky top-0 z-40 flex h-16 md:h-20 items-center justify-between border-b bg-white px-4 md:px-8">
 
-      <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium text-slate-500">
-          {subtitle ?? "Welcome back"}
-        </p>
-
-        <h1 className="text-2xl xl:text-3xl font-bold text-slate-900 truncate mt-1">
-          {title}
-        </h1>
-      </div>
-
+      {/* اليسار */}
       <div className="flex items-center gap-3">
 
-        <div className="relative hidden lg:block">
+        <button
+          onClick={onMenuClick}
+          className="rounded-xl p-2 hover:bg-slate-100 lg:hidden"
+        >
+          <Menu size={24} />
+        </button>
+
+        <div>
+
+          <p className="hidden text-sm text-slate-500 md:block">
+            {subtitle ?? "مرحباً بك"}
+          </p>
+
+          <h1 className="text-lg font-bold md:text-2xl">
+            {title}
+          </h1>
+
+        </div>
+
+      </div>
+
+      {/* الوسط */}
+      <div className="hidden xl:block">
+
+        <div className="relative">
 
           <Search
             size={18}
@@ -35,15 +54,46 @@ export default function Header({
 
           <input
             type="text"
-            placeholder="Search..."
-            className="w-80 h-12 pl-11 pr-4 rounded-2xl border border-slate-200 bg-slate-50 focus:bg-white outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="بحث..."
+            className="h-11 w-80 rounded-2xl border bg-slate-50 pl-11 pr-4 outline-none transition focus:border-blue-500"
           />
 
         </div>
 
-        <button className="w-12 h-12 rounded-2xl bg-slate-100 hover:bg-slate-200 transition flex items-center justify-center">
-          <Bell size={20} />
+      </div>
+
+      {/* اليمين */}
+
+      <div className="flex items-center gap-3">
+
+        <button className="relative rounded-xl p-2 hover:bg-slate-100">
+
+          <Bell size={22} />
+
+          <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500" />
+
         </button>
+
+        <div className="flex items-center gap-2">
+
+          <UserCircle2
+            size={42}
+            className="text-blue-600"
+          />
+
+          <div className="hidden md:block">
+
+            <p className="font-semibold">
+              {fullName ?? "Administrator"}
+            </p>
+
+            <p className="text-xs text-slate-500">
+              DR.Drive وصلني الآن
+            </p>
+
+          </div>
+
+        </div>
 
       </div>
 

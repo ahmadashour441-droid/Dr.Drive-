@@ -1,7 +1,9 @@
 import { ReactNode } from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+
 import CaptainSidebar from "@/app/components/layout/CaptainSidebar";
+import Navbar from "@/app/components/dashboard/Navbar";
 
 export default async function DashboardLayout({
   children,
@@ -29,12 +31,20 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
+    <div className="flex min-h-screen bg-slate-100">
+
       <CaptainSidebar />
 
-      <main className="flex-1 overflow-y-auto p-8">
-        {children}
-      </main>
+      <div className="flex flex-1 flex-col">
+
+        <Navbar fullName={user.full_name} />
+
+        <main className="flex-1 overflow-auto p-4 md:p-8">
+          {children}
+        </main>
+
+      </div>
+
     </div>
   );
 }
