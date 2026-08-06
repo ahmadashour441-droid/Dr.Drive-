@@ -65,7 +65,8 @@ const { data, error } = await supabase
 
 console.log("DATA:", data);
 console.log("ERROR:", error);
-
+console.log("SESSION:", user);
+console.log("USER DATA:", userData);
     if (error) {
   console.error("Recharge Error:", error);
 
