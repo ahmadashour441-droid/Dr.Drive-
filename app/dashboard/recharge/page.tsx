@@ -69,7 +69,14 @@ const result =
 console.log("Response:", response.status);
 console.log("Result:", result);
 if (!response.ok) {
-  alert(result.error);
+  console.error(result);
+
+  alert(
+    typeof result.error === "string"
+      ? result.error
+      : JSON.stringify(result.error, null, 2)
+  );
+
   return;
 }
 

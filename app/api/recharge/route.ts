@@ -58,13 +58,14 @@ console.log("ERROR:", error);
   console.error("Recharge Error:", error);
 
   return NextResponse.json(
-    {
-      error,
-    },
-    {
-      status: 500,
-    }
-  );
+  {
+    error: error.message,
+    details: error,
+  },
+  {
+    status: 500,
+  }
+);
 }
 
     return NextResponse.json({
