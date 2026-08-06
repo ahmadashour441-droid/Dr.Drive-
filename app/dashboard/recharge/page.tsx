@@ -12,27 +12,35 @@ export default function RechargePage() {
   async function sendRequest() {
 
   if (!amount) {
-    alert("أدخل المبلغ");
-    return;
-  }
+  alert("أدخل المبلغ");
+  return;
+}
 
-  if (!receipt) {
-    alert("أرفق صورة الوصل");
-    return;
-  }
+if (!receipt) {
+  alert("أرفق صورة الوصل");
+  return;
+}
 
-  const fileName =
-    `${Date.now()}-${receipt.name}`;
+const ext =
+  receipt.name.split(".").pop() || "jpg";
 
-  const { error: uploadError } =
-    await supabase.storage
-      .from("receipts")
-      .upload(fileName, receipt);
+const fileName =
+  `${crypto.randomUUID()}.${ext}`;
 
-  if (uploadError) {
-    alert(uploadError.message);
-    return;
-  }
+const { error: uploadError } =
+  await supabase.storage
+    .from("receipts")
+    .upload(fileName, receipt, {
+      cacheControl: "3600",
+      upsert: true,
+      contentType: receipt.type,
+    });
+
+if (uploadError) {
+  console.error(uploadError);
+  alert(uploadError.message);
+  return;
+}
 
   const {
     data: { publicUrl },

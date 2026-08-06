@@ -43,6 +43,8 @@ console.log(
   .from("RechargeRequests")
   .insert({
     user_id: user.id,
+    full_name: user.full_name,
+    phone: user.phone,
     amount,
     receipt_image,
     status: "pending",
