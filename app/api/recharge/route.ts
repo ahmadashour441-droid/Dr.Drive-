@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
     }
 
     const user = JSON.parse(session.value);
-
+console.log("SESSION USER:", user);
     const body = await req.json();
 
     const {
