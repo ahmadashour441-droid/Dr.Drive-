@@ -8,95 +8,80 @@ const supabase = createClient(
 );
 
 export async function POST(req: NextRequest) {
-    console.log("API RECHARGE CALLED");
   try {
-
+    // التحقق من تسجيل الدخول
     const cookieStore = await cookies();
-
-    const session =
-      cookieStore.get("drdrive_session");
+    const session = cookieStore.get("drdrive_session");
 
     if (!session) {
       return NextResponse.json(
-        {
-          error: "يجب تسجيل الدخول",
-        },
-        {
-          status: 401,
-        }
+        { error: "يجب تسجيل الدخول أولاً" },
+        { status: 401 }
       );
     }
 
-    const user = JSON.parse(session.value);
-const { data: userData, error: userError } = await supabase
-  .from("Users")
-  .select("full_name, phone")
-  .eq("id", user.id)
-  .single();
+    const sessionUser = JSON.parse(session.value);
 
-if (userError || !userData) {
-  return NextResponse.json(
-    { error: "تعذر العثور على بيانات المستخدم" },
-    { status: 500 }
-  );
-}
-    const body = await req.json();
+    // قراءة البيانات القادمة من الصفحة
+    const { amount, receipt_image } = await req.json();
 
-    const {
-      amount,
-      receipt_image,
-    } = body;
-console.log(
-  "SERVICE KEY EXISTS:",
-  !!process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+    if (!amount || !receipt_image) {
+      return NextResponse.json(
+        { error: "البيانات غير مكتملة" },
+        { status: 400 }
+      );
+    }
 
-const { data, error } = await supabase
-  .from("RechargeRequests")
-  .insert({
-    user_id: user.id,
-    full_name: userData.full_name,
-    phone: userData.phone,
-    amount,
-    receipt_image,
-    status: "pending",
-  })
-  .select();
+    // جلب بيانات المستخدم من جدول Users
+    const { data: user, error: userError } = await supabase
+      .from("Users")
+      .select("id, full_name, phone")
+      .eq("id", sessionUser.id)
+      .single();
 
-console.log("DATA:", data);
-console.log("ERROR:", error);
-console.log("SESSION:", user);
-console.log("USER DATA:", userData);
-    if (error) {
-  console.error("Recharge Error:", error);
+    if (userError || !user) {
+      return NextResponse.json(
+        { error: "تعذر العثور على بيانات المستخدم" },
+        { status: 404 }
+      );
+    }
 
-  return NextResponse.json(
-  {
-    error: error.message,
-    details: error,
-  },
-  {
-    status: 500,
-  }
-);
-}
+    // حفظ طلب الشحن
+    const { error: insertError } = await supabase
+      .from("RechargeRequests")
+      .insert({
+        user_id: user.id,
+        full_name: user.full_name,
+        phone: user.phone,
+        amount: Number(amount),
+        receipt_image,
+        status: "pending",
+      });
+
+    if (insertError) {
+      console.error(insertError);
+
+      return NextResponse.json(
+        { error: insertError.message },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({
       success: true,
+      message: "تم إرسال طلب الشحن بنجاح",
     });
 
   } catch (err: any) {
+    console.error(err);
 
     return NextResponse.json(
       {
-        error:
-          err.message ??
-          "حدث خطأ",
+        error: err.message || "حدث خطأ غير متوقع",
       },
       {
         status: 500,
       }
     );
-
   }
 }
