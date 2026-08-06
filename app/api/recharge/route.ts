@@ -28,7 +28,18 @@ export async function POST(req: NextRequest) {
     }
 
     const user = JSON.parse(session.value);
-console.log("SESSION USER:", user);
+const { data: userData, error: userError } = await supabase
+  .from("Users")
+  .select("full_name, phone")
+  .eq("id", user.id)
+  .single();
+
+if (userError || !userData) {
+  return NextResponse.json(
+    { error: "تعذر العثور على بيانات المستخدم" },
+    { status: 500 }
+  );
+}
     const body = await req.json();
 
     const {
@@ -39,12 +50,13 @@ console.log(
   "SERVICE KEY EXISTS:",
   !!process.env.SUPABASE_SERVICE_ROLE_KEY
 );
-    const { data, error } = await supabase
+
+const { data, error } = await supabase
   .from("RechargeRequests")
   .insert({
     user_id: user.id,
-    full_name: user.full_name,
-    phone: user.phone,
+    full_name: userData.full_name,
+    phone: userData.phone,
     amount,
     receipt_image,
     status: "pending",
