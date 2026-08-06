@@ -81,12 +81,12 @@ const requests =
       </td>
 
       <td className="px-5 py-4 font-medium">
-        {request.user?.full_name}
-      </td>
+  {request.full_name}
+</td>
 
-      <td className="px-5 py-4">
-        {request.user?.phone}
-      </td>
+<td className="px-5 py-4">
+  {request.phone}
+</td>
 
       <td className="px-5 py-4 font-bold text-green-600">
         {Number(request.amount).toFixed(2)} JD
