@@ -74,7 +74,9 @@ const unpaidBalance =
 const totalEarnings =
   allTransactions
     .filter(
-      (trx) => trx.type === "credit"
+      (trx) =>
+        trx.type === "credit" &&
+        trx.description !== "شحن رصيد"
     )
     .reduce(
       (sum, trx) =>
