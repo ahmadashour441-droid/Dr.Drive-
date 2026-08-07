@@ -64,14 +64,13 @@ const walletBalance =
   );
 
 const unpaidBalance =
-  allTransactions.reduce(
-    (sum, trx) =>
-      trx.type === "credit"
-        ? sum + Number(trx.amount)
-        : sum - Number(trx.amount),
-    0
-  );
-
+  allOrders
+    .filter((order) => !order.is_settled)
+    .reduce(
+      (sum, order) =>
+        sum + Number(order.captain_due ?? 0),
+      0
+    );
 const totalEarnings =
   allTransactions
     .filter(
