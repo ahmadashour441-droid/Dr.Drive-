@@ -17,13 +17,14 @@ export default function CaptainShell({
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen bg-slate-100">
 
-      {/* Desktop Sidebar */}
+<div className="flex min-h-screen bg-slate-100">
 
-      <div className="hidden lg:block">
-        <CaptainSidebar />
-      </div>
+  {/* Desktop Sidebar */}
+
+  <div className="hidden lg:block">
+    <CaptainSidebar />
+  </div>
 
       {/* Mobile Drawer */}
 
