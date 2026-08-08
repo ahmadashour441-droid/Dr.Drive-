@@ -2,9 +2,7 @@ import { cookies } from "next/headers";
 import Link from "next/link";
 import {
   ArrowLeft,
-  Building2,
   ClipboardList,
-  CreditCard,
   FileText,
   Headphones,
   UserCircle,
@@ -63,13 +61,13 @@ export default async function DashboardPage() {
     0
   );
 
-  const totalEarnings = allTransactions
-    .filter(
-      (trx) =>
-        trx.type === "credit" &&
-        trx.description !== "شحن رصيد"
-    )
-    .reduce((sum, trx) => sum + Number(trx.amount), 0);
+  // أرباح الكابتن هذا الأسبوع تأتي من مستحقات الطلبات.
+  // حركات الكابتن في BalanceTransactions تُسجل كـ debit،
+  // لذلك الاعتماد على credit هنا كان يعرض الأرباح 0.000.
+  const totalEarnings = allOrders.reduce(
+    (sum, order) => sum + Number(order.captain_due ?? 0),
+    0
+  );
 
   const now = new Date();
 
@@ -196,9 +194,7 @@ export default async function DashboardPage() {
             value={`${totalEarnings.toFixed(3)}`}
             suffix="JD"
             subtitle="هذا الأسبوع"
-            icon={<TrendingUp size={29} />}
-            iconClass="bg-[#CFF6D2] text-[#39B34A]"
-            valueClass="text-[#36A448]"
+            icon={<TrendingUp size={32} />}
           />
 
           <StatCard
@@ -206,9 +202,7 @@ export default async function DashboardPage() {
             value={`${unpaidBalance.toFixed(3)}`}
             suffix="JD"
             subtitle="متبقي الدفع"
-            icon={<CircleDollarSign size={29} />}
-            iconClass="bg-[#FFF0C8] text-[#F2A929]"
-            valueClass="text-[#F2A929]"
+            icon={<CircleDollarSign size={32} />}
           />
 
           <StatCard
@@ -216,58 +210,9 @@ export default async function DashboardPage() {
             value={String(totalOrders)}
             suffix=""
             subtitle="هذا الأسبوع"
-            icon={<ClipboardList size={29} />}
-            iconClass="bg-[#D6E9FF] text-[#2874D8]"
-            valueClass="text-[#2865B6]"
+            icon={<ClipboardList size={32} />}
           />
 
-          <StatCard
-            title="رصيد المحفظة"
-            value={`${walletBalance.toFixed(3)}`}
-            suffix="JD"
-            subtitle="متاح للسحب"
-            icon={<Wallet size={29} />}
-            iconClass="bg-[#D6E9FF] text-[#2874D8]"
-            valueClass="text-[#2865B6]"
-          />
-
-          <Link
-            href="/dashboard/recharge"
-            className="group rounded-[24px] bg-white p-5 shadow-[0_8px_25px_rgba(18,41,75,.08)] ring-1 ring-slate-200/80 transition hover:-translate-y-1 hover:shadow-xl"
-          >
-            <div className="flex items-center gap-4">
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#E5D7FF] text-[#7C2DD4]">
-                <CreditCard size={29} />
-              </div>
-              <div className="min-w-0">
-                <p className="text-lg font-black text-[#13294B]">
-                  شحن المحفظة
-                </p>
-                <p className="mt-1 text-sm leading-6 text-slate-400">
-                  قم بشحن محفظتك للبدء باستقبال الطلبات
-                </p>
-              </div>
-            </div>
-          </Link>
-
-          <Link
-            href="/dashboard/accounting"
-            className="group rounded-[24px] bg-white p-5 shadow-[0_8px_25px_rgba(18,41,75,.08)] ring-1 ring-slate-200/80 transition hover:-translate-y-1 hover:shadow-xl"
-          >
-            <div className="flex items-center gap-4">
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#D5F6DC] text-[#3FA94C]">
-                <Building2 size={29} />
-              </div>
-              <div className="min-w-0">
-                <p className="text-lg font-black text-[#13294B]">
-                  طلب سحب المستحقات
-                </p>
-                <p className="mt-1 text-sm leading-6 text-slate-400">
-                  حول مستحقاتك إلى حسابك البنكي
-                </p>
-              </div>
-            </div>
-          </Link>
         </section>
 
         {/* ========================= MAIN ACTIONS ========================= */}
@@ -345,32 +290,35 @@ function StatCard({
   suffix,
   subtitle,
   icon,
-  iconClass,
-  valueClass,
 }: {
   title: string;
   value: string;
   suffix: string;
   subtitle: string;
   icon: React.ReactNode;
-  iconClass: string;
-  valueClass: string;
 }) {
   return (
-    <div className="rounded-[24px] bg-white p-5 shadow-[0_8px_25px_rgba(18,41,75,.08)] ring-1 ring-slate-200/80 transition hover:-translate-y-1 hover:shadow-xl">
-      <div className="flex items-center justify-between gap-3">
-        <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-full ${iconClass}`}>
-          {icon}
-        </div>
-        <span className="text-sm font-black text-[#13294B]">{title}</span>
+    <div className="group min-h-[245px] rounded-[24px] border border-white/10 bg-gradient-to-br from-[#173E70] to-[#0D2D56] p-7 text-white shadow-[inset_0_1px_0_rgba(255,255,255,.06),0_12px_30px_rgba(7,30,61,.14)] transition hover:-translate-y-1 hover:from-[#1A477F] hover:to-[#103766]">
+      <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-[#285694] text-[#8CB8FF] shadow-inner">
+        {icon}
       </div>
 
-      <div className={`mt-5 flex items-end gap-2 ${valueClass}`} dir="ltr">
-        <span className="text-3xl font-black tracking-tight">{value}</span>
-        {suffix && <span className="mb-1 text-sm font-bold">{suffix}</span>}
+      <h3 className="mt-6 text-2xl font-black">{title}</h3>
+
+      <div className="mt-4 flex items-end gap-2" dir="ltr">
+        <span className="text-4xl font-black tracking-tight text-white">
+          {value}
+        </span>
+        {suffix && (
+          <span className="mb-1 text-base font-bold text-white/80">
+            {suffix}
+          </span>
+        )}
       </div>
 
-      <p className="mt-1 text-xs text-slate-400">{subtitle}</p>
+      <p className="mt-2 text-sm font-bold text-white/60">
+        {subtitle}
+      </p>
     </div>
   );
 }
