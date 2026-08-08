@@ -13,53 +13,92 @@ export default function CaptainShell({
   children,
   fullName,
 }: Props) {
-
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
+    <div
+      dir="rtl"
+      className="flex min-h-screen w-full overflow-x-hidden bg-[#F5F7FB]"
+    >
+      {/* =========================
+          DESKTOP SIDEBAR
+      ========================= */}
 
-<div className="flex min-h-screen bg-slate-100">
+      <aside className="hidden w-72 shrink-0 lg:block">
+        <div className="sticky top-0 h-screen">
+          <CaptainSidebar />
+        </div>
+      </aside>
 
-  {/* Desktop Sidebar */}
-
-  <div className="hidden lg:block">
-    <CaptainSidebar />
-  </div>
-
-      {/* Mobile Drawer */}
+      {/* =========================
+          MOBILE SIDEBAR
+      ========================= */}
 
       {sidebarOpen && (
         <>
+          {/* Overlay */}
+
           <div
             className="fixed inset-0 z-40 bg-black/50 lg:hidden"
             onClick={() => setSidebarOpen(false)}
           />
 
-          <div className="fixed left-0 top-0 z-50 h-full w-64 max-w-[85vw] shadow-2xl lg:hidden">
+          {/* Drawer */}
 
+          <aside
+            className="
+              fixed
+              right-0
+              top-0
+              z-50
+              h-screen
+              w-72
+              max-w-[85vw]
+              shadow-2xl
+              lg:hidden
+            "
+          >
             <CaptainSidebar
               onNavigate={() => setSidebarOpen(false)}
             />
-
-          </div>
+          </aside>
         </>
       )}
 
-      <div className="flex flex-1 flex-col">
+      {/* =========================
+          MAIN AREA
+      ========================= */}
+
+      <div className="flex min-w-0 flex-1 flex-col">
+
+        {/* Header */}
 
         <Header
           title="لوحة التحكم"
           subtitle="مرحباً بك"
           fullName={fullName}
-          onMenuClick={() => setSidebarOpen((prev) => !prev)}
+          onMenuClick={() =>
+            setSidebarOpen((prev) => !prev)
+          }
         />
 
-        <main className="flex-1 overflow-auto p-4 md:p-8">
+        {/* Page */}
+
+        <main
+          className="
+            min-w-0
+            flex-1
+            overflow-x-hidden
+            p-3
+            sm:p-4
+            md:p-6
+            lg:p-8
+          "
+        >
           {children}
         </main>
 
       </div>
-
     </div>
   );
 }
