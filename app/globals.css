@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #eef4ff;
-  --foreground: #1e293b;
+  --background: #eef3f9;
+  --foreground: #13294b;
 
   --card: rgba(255, 255, 255, 0.88);
   --border: rgba(255, 255, 255, 0.5);
@@ -28,15 +28,9 @@ html {
 body {
   min-height: 100vh;
   color: var(--foreground);
-
-  font-family: var(--font-inter), sans-serif;
-
-  background:
-    radial-gradient(circle at top right, #dbeafe 0%, transparent 35%),
-    radial-gradient(circle at bottom left, #ddd6fe 0%, transparent 35%),
-    linear-gradient(135deg, #eef4ff 0%, #f8fbff 100%);
-
-  background-attachment: fixed;
+  font-family: "Cairo", "Tajawal", Arial, sans-serif;
+  background: #eef3f9;
+  -webkit-font-smoothing: antialiased;
 }
 
 /* Scrollbar */
