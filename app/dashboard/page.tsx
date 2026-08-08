@@ -775,180 +775,118 @@ export default async function DashboardPage() {
             LATEST ORDERS
         ===================================================== */}
 
-        <section
+       <section
+  className="
+    relative
+    min-h-[420px]
+    overflow-hidden
+    rounded-[28px]
+    shadow-xl
+    bg-[#061B35]
+  "
+>
+  {/* صورة الخلفية */}
+
+  <img
+    src="/dashboard-hero.png"
+    alt="Dr.Drive"
+    className="
+      absolute
+      inset-0
+      h-full
+      w-full
+      object-cover
+      object-center
+    "
+  />
+
+  {/* طبقة داكنة فوق الصورة */}
+
+  <div className="absolute inset-0 bg-[#061B35]/25" />
+
+  {/* المحتوى */}
+
+  <div className="relative z-10 flex min-h-[420px] items-center p-6 md:p-10">
+
+    <div className="w-full max-w-2xl">
+
+      <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-black/30 px-4 py-2 text-sm font-bold text-white backdrop-blur-md">
+        <span className="h-2.5 w-2.5 rounded-full bg-green-400" />
+        حسابك نشط
+      </div>
+
+      <h1 className="text-3xl font-black text-white md:text-5xl">
+        مرحباً بك يا كابتن
+      </h1>
+
+      <p className="mt-3 text-lg font-medium text-white/90">
+        نتمنى لك يوماً موفقاً وآمناً
+      </p>
+
+      <div className="mt-5 flex flex-wrap gap-3">
+
+        <div className="rounded-xl bg-black/40 px-4 py-2 text-sm font-bold text-white backdrop-blur-md">
+          📅 اليوم
+        </div>
+
+        <div className="rounded-xl bg-black/40 px-4 py-2 text-sm font-bold text-white backdrop-blur-md">
+          🕐 الآن
+        </div>
+
+      </div>
+
+      <div className="mt-6 flex flex-wrap gap-3">
+
+        <Link
+          href="/dashboard/recharge"
           className="
-            hidden
-            overflow-hidden
-            rounded-[28px]
-            bg-white
-            shadow-sm
-            ring-1
-            ring-slate-200
-            md:block
+            inline-flex
+            items-center
+            gap-2
+            rounded-xl
+            bg-[#F5B82E]
+            px-5
+            py-3
+            font-black
+            text-[#061B35]
+            shadow-lg
+            transition
+            hover:bg-yellow-300
           "
         >
+          <Wallet size={19} />
+          شحن المحفظة
+        </Link>
 
-          <div
-            className="
-              flex
-              items-center
-              justify-between
-              border-b
-              border-slate-100
-              p-6
-            "
-          >
+        <Link
+          href="/dashboard/orders"
+          className="
+            inline-flex
+            items-center
+            gap-2
+            rounded-xl
+            border
+            border-white/30
+            bg-black/30
+            px-5
+            py-3
+            font-bold
+            text-white
+            backdrop-blur-md
+            transition
+            hover:bg-black/50
+          "
+        >
+          طلباتي
+          <ArrowLeft size={18} />
+        </Link>
 
-            <div>
+      </div>
 
-              <h2 className="text-xl font-black">
-                آخر الطلبات
-              </h2>
+    </div>
 
-              <p className="mt-1 text-sm text-slate-500">
-                أحدث الطلبات المسجلة على حسابك
-              </p>
-
-            </div>
-
-            <Link
-              href="/dashboard/orders"
-              className="
-                inline-flex
-                items-center
-                gap-1
-                text-sm
-                font-bold
-                text-blue-600
-              "
-            >
-              عرض الكل
-              <ChevronLeft size={17} />
-            </Link>
-
-          </div>
-
-          <div className="overflow-x-auto">
-
-            <table className="w-full">
-
-              <thead className="bg-slate-50">
-
-                <tr>
-
-                  <th className="px-6 py-4 text-right text-xs font-bold text-slate-500">
-                    الطلب
-                  </th>
-
-                  <th className="px-6 py-4 text-right text-xs font-bold text-slate-500">
-                    المنتج
-                  </th>
-
-                  <th className="px-6 py-4 text-right text-xs font-bold text-slate-500">
-                    القيمة
-                  </th>
-
-                  <th className="px-6 py-4 text-right text-xs font-bold text-slate-500">
-                    المستحق
-                  </th>
-
-                  <th className="px-6 py-4 text-right text-xs font-bold text-slate-500">
-                    الحالة
-                  </th>
-
-                </tr>
-
-              </thead>
-
-              <tbody>
-
-                {latestOrders.length > 0 ? (
-                  latestOrders.map((order) => (
-                    <tr
-                      key={order.id}
-                      className="border-t border-slate-100"
-                    >
-
-                      <td className="px-6 py-5">
-
-                        <p className="font-bold text-slate-800">
-                          #{order.id}
-                        </p>
-
-                        <p className="mt-1 text-xs text-slate-400">
-                          {new Date(
-                            order.created_at
-                          ).toLocaleString(
-                            "ar-JO",
-                            {
-                              year: "numeric",
-                              month: "2-digit",
-                              day: "2-digit",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            }
-                          )}
-                        </p>
-
-                      </td>
-
-                      <td className="px-6 py-5 font-semibold">
-                        {order.producer?.full_name ??
-                          "غير محدد"}
-                      </td>
-
-                      <td className="px-6 py-5 font-bold">
-                        {Number(
-                          order.amount
-                        ).toFixed(2)}{" "}
-                        JD
-                      </td>
-
-                      <td className="px-6 py-5 font-bold text-green-600">
-                        {Number(
-                          order.captain_due ?? 0
-                        ).toFixed(2)}{" "}
-                        JD
-                      </td>
-
-                      <td className="px-6 py-5">
-
-                        <span
-                          className="
-                            rounded-full
-                            bg-orange-50
-                            px-3
-                            py-1.5
-                            text-xs
-                            font-bold
-                            text-orange-600
-                          "
-                        >
-                          غير مسدد
-                        </span>
-
-                      </td>
-
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td
-                      colSpan={5}
-                      className="px-6 py-12 text-center text-slate-400"
-                    >
-                      لا توجد طلبات حاليًا
-                    </td>
-                  </tr>
-                )}
-
-              </tbody>
-
-            </table>
-
-          </div>
-
-        </section>
+  </div>
+</section>
 
 
         {/* =====================================================
