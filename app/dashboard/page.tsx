@@ -627,9 +627,9 @@ export default async function DashboardPage() {
 
             <div>
 
-              <h2 className="text-xl font-black text-slate-900">
-                آخر الطلبات
-              </h2>
+              <h2 className="hidden lg:block text-2xl font-bold">
+  آخر الطلبات
+</h2>
 
               <p className="mt-1 text-sm text-slate-500">
                 أحدث الطلبات المسجلة على حسابك
@@ -647,7 +647,7 @@ export default async function DashboardPage() {
 
           </div>
 
-          <div className="overflow-x-auto">
+          <div className="hidden lg:block overflow-x-auto rounded-2xl border bg-white shadow">
 
             <table className="w-full min-w-[800px]">
 
