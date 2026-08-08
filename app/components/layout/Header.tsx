@@ -1,6 +1,11 @@
 "use client";
 
-import { Bell, Menu, Search, UserCircle2 } from "lucide-react";
+import {
+  Bell,
+  Menu,
+  Search,
+  UserCircle2,
+} from "lucide-react";
 
 interface HeaderProps {
   title: string;
@@ -16,84 +21,160 @@ export default function Header({
   fullName,
 }: HeaderProps) {
   return (
-    <header className="sticky top-0 z-40 flex h-16 md:h-20 items-center justify-between border-b bg-white px-4 md:px-8">
+    <header
+      dir="rtl"
+      className="
+        sticky
+        top-0
+        z-30
+        flex
+        h-[82px]
+        items-center
+        justify-between
+        border-b
+        border-slate-200
+        bg-white
+        px-4
+        shadow-sm
+        md:px-8
+      "
+    >
+      {/* يمين الهيدر */}
 
-      {/* اليسار */}
       <div className="flex items-center gap-3">
 
-        <button
-          onClick={onMenuClick}
-          className="rounded-xl p-2 hover:bg-slate-100 lg:hidden"
-        >
-          <Menu size={24} />
-        </button>
-
-        <div>
-
-          <p className="hidden text-sm text-slate-500 md:block">
-            {subtitle ?? "مرحباً بك"}
+        <div className="hidden text-right sm:block">
+          <p className="text-lg font-bold text-slate-800">
+            {fullName ?? "الكابتن"}
           </p>
 
-          <h1 className="text-lg font-bold md:text-2xl">
-            {title}
-          </h1>
+          <p className="text-xs text-slate-500">
+            Dr.Drive وصلني الآن
+          </p>
+        </div>
 
+        <div
+          className="
+            flex
+            h-12
+            w-12
+            items-center
+            justify-center
+            rounded-full
+            border-2
+            border-blue-600
+            bg-white
+          "
+        >
+          <UserCircle2
+            size={34}
+            className="text-blue-600"
+          />
         </div>
 
       </div>
 
-      {/* الوسط */}
-      <div className="hidden xl:block">
+      {/* البحث */}
 
-        <div className="relative">
+      <div className="hidden md:block">
+
+        <div
+          className="
+            relative
+            flex
+            h-11
+            w-[300px]
+            items-center
+            rounded-full
+            border
+            border-slate-300
+            bg-slate-50
+          "
+        >
 
           <Search
             size={18}
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+            className="absolute right-4 text-slate-400"
           />
 
           <input
             type="text"
             placeholder="بحث..."
-            className="h-11 w-80 rounded-2xl border bg-slate-50 pl-11 pr-4 outline-none transition focus:border-blue-500"
+            className="
+              h-full
+              w-full
+              rounded-full
+              bg-transparent
+              px-11
+              text-sm
+              outline-none
+            "
           />
 
         </div>
 
       </div>
 
-      {/* اليمين */}
+      {/* اليسار */}
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2">
 
-        <button className="relative rounded-xl p-2 hover:bg-slate-100">
+        <button
+          type="button"
+          className="
+            relative
+            flex
+            h-11
+            w-11
+            items-center
+            justify-center
+            rounded-full
+            transition
+            hover:bg-slate-100
+          "
+        >
 
-          <Bell size={22} />
+          <Bell
+            size={25}
+            className="text-slate-700"
+          />
 
-          <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500" />
+          <span
+            className="
+              absolute
+              right-2
+              top-2
+              h-2.5
+              w-2.5
+              rounded-full
+              bg-yellow-400
+            "
+          />
 
         </button>
 
-        <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={onMenuClick}
+          className="
+            flex
+            h-11
+            w-11
+            items-center
+            justify-center
+            rounded-xl
+            transition
+            hover:bg-slate-100
+            lg:hidden
+          "
+        >
 
-          <UserCircle2
-            size={42}
-            className="text-blue-600"
+          <Menu
+            size={28}
+            className="text-slate-700"
           />
 
-          <div className="hidden md:block">
-
-            <p className="font-semibold">
-              {fullName ?? "Administrator"}
-            </p>
-
-            <p className="text-xs text-slate-500">
-              DR.Drive وصلني الآن
-            </p>
-
-          </div>
-
-        </div>
+        </button>
 
       </div>
 
