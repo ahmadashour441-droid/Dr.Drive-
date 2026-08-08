@@ -119,15 +119,15 @@ export default async function DashboardPage() {
         ===================================== */}
 
         <section
-          className="
-            relative
-            min-h-[250px]
-            overflow-hidden
-            rounded-[28px]
-            bg-[#061B35]
-            shadow-xl
-          "
-        >
+  className="
+    relative
+    min-h-[280px]
+    overflow-hidden
+    rounded-[30px]
+    bg-[#061B35]
+    shadow-xl
+  "
+>
           {/* Decorative circles */}
 
           <div className="absolute -left-20 -top-24 h-64 w-64 rounded-full bg-blue-500/10" />
@@ -136,7 +136,7 @@ export default async function DashboardPage() {
 
           <div className="absolute right-1/2 top-1/2 h-40 w-40 -translate-y-1/2 rounded-full bg-blue-500/5" />
 
-          <div className="relative z-10 flex min-h-[250px] flex-col justify-between gap-8 p-7 md:flex-row md:items-center md:p-10">
+          <div className="relative z-10 flex min-h-[280px] flex-col justify-between gap-6 p-6 md:flex-row md:items-center md:p-8 lg:p-10">
 
             <div className="max-w-2xl">
 
@@ -145,7 +145,7 @@ export default async function DashboardPage() {
                 حسابك نشط
               </div>
 
-              <h1 className="text-3xl font-black leading-tight text-white md:text-5xl">
+              <h1 className="text-4xl font-black leading-tight text-white md:text-5xl lg:text-6xl">
                 أهلاً،{" "}
                 <span className="text-[#F5B82E]">
                   {user.full_name}
@@ -166,7 +166,7 @@ export default async function DashboardPage() {
                     items-center
                     gap-2
                     rounded-xl
-                    bg-[#F5B82E]
+                    bg-[#FFB51B]
                     px-5
                     py-3
                     text-sm
@@ -212,8 +212,8 @@ export default async function DashboardPage() {
             <div
               className="
                 hidden
-                h-40
-                w-52
+h-44
+w-56
                 shrink-0
                 items-center
                 justify-center
