@@ -96,13 +96,13 @@ export default async function DashboardPage() {
         {/* ========================= HERO ========================= */}
         <section className="relative overflow-hidden bg-[#0A2C53]">
           <div
-            className="absolute inset-0 bg-center bg-no-repeat bg-[length:100%_auto] lg:bg-cover"
+            className="absolute inset-0 bg-center bg-no-repeat bg-[length:100%_100%]"
             style={{ backgroundImage: "url('/dashboard-hero.png')" }}
           />
           <div className="absolute inset-0 bg-gradient-to-r from-[#0A2C53]/80 via-[#0A2C53]/35 to-[#0A2C53]/25" />
           <div className="absolute inset-0 bg-black/10" />
 
-          <div className="relative grid min-h-[500px] grid-cols-1 gap-6 px-4 py-6 sm:px-8 lg:grid-cols-[1fr_520px] lg:gap-10 lg:px-12 lg:py-10">
+          <div className="relative grid min-h-[455px] grid-cols-1 gap-4 px-4 py-5 sm:min-h-[500px] sm:gap-6 sm:px-8 lg:grid-cols-[1fr_520px] lg:gap-10 lg:px-12 lg:py-10">
 
             {/* Welcome */}
             <div className="flex flex-col justify-center text-white">
@@ -132,7 +132,7 @@ export default async function DashboardPage() {
 
             {/* Wallet / primary actions */}
             <div className="flex flex-col justify-center">
-              <div className="rounded-[24px] border border-white/25 bg-gradient-to-br from-[#3B8BEA]/95 to-[#1851A9]/95 p-4 sm:p-5 text-white shadow-[0_25px_55px_rgba(0,0,0,.25)] backdrop-blur sm:p-7">
+              <div className="rounded-[22px] border border-white/25 bg-gradient-to-br from-[#3B8BEA]/95 to-[#1851A9]/95 p-4 sm:p-5 text-white shadow-[0_20px_45px_rgba(0,0,0,.22)] backdrop-blur">
                 <div className="flex items-center gap-4">
                   <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white sm:h-14 sm:w-14 text-[#2777DF] shadow-lg">
                     <Wallet size={25} />
@@ -161,12 +161,12 @@ export default async function DashboardPage() {
                 </div>
               </div>
 
-              <div className="mt-5 grid grid-cols-2 gap-4">
+              <div className="mt-3 grid grid-cols-2 gap-3 sm:mt-4 sm:gap-4">
                 <Link
                   href="/dashboard/recharge"
-                  className="flex min-h-[105px] flex-col items-center justify-center rounded-[22px] bg-gradient-to-br from-[#63D65D] to-[#35A946] p-5 text-center text-white shadow-xl transition hover:-translate-y-1"
+                  className="flex min-h-[92px] flex-col items-center justify-center rounded-[20px] bg-gradient-to-br from-[#63D65D] to-[#35A946] p-5 text-center text-white shadow-xl transition hover:-translate-y-1"
                 >
-                  <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-2xl bg-white/20">
+                  <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-2xl bg-white/20">
                     <Wallet size={25} />
                   </div>
                   <span className="text-base font-black">شحن المحفظة</span>
@@ -174,9 +174,9 @@ export default async function DashboardPage() {
 
                 <Link
                   href="/dashboard/accounting"
-                  className="flex min-h-[105px] flex-col items-center justify-center rounded-[22px] bg-gradient-to-br from-[#8B3BE6] to-[#5B19B8] p-5 text-center text-white shadow-xl transition hover:-translate-y-1"
+                  className="flex min-h-[92px] flex-col items-center justify-center rounded-[20px] bg-gradient-to-br from-[#8B3BE6] to-[#5B19B8] p-5 text-center text-white shadow-xl transition hover:-translate-y-1"
                 >
-                  <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-2xl bg-white/20">
+                  <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-2xl bg-white/20">
                     <Landmark size={25} />
                   </div>
                   <span className="text-base font-black">طلب سحب المستحقات</span>
@@ -298,12 +298,12 @@ function StatCard({
   icon: React.ReactNode;
 }) {
   return (
-    <div className="group min-h-[185px] rounded-[22px] border border-white/10 bg-gradient-to-br from-[#173E70] to-[#0D2D56] p-5 text-white shadow-[inset_0_1px_0_rgba(255,255,255,.06),0_10px_24px_rgba(7,30,61,.14)] transition hover:-translate-y-1 hover:from-[#1A477F] hover:to-[#103766]">
-      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#285694] text-[#8CB8FF] shadow-inner">
+    <div className="group min-h-[165px] rounded-[20px] border border-white/10 bg-gradient-to-br from-[#173E70] to-[#0D2D56] p-4 text-white shadow-[inset_0_1px_0_rgba(255,255,255,.06),0_8px_20px_rgba(7,30,61,.14)] transition hover:-translate-y-1 hover:from-[#1A477F] hover:to-[#103766]">
+      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#285694] text-[#8CB8FF] shadow-inner">
         {icon}
       </div>
 
-      <h3 className="mt-4 text-xl font-black">{title}</h3>
+      <h3 className="mt-3 text-lg font-black">{title}</h3>
 
       <div className="mt-3 flex items-end gap-2" dir="ltr">
         <span className="text-3xl font-black tracking-tight text-white">
@@ -337,19 +337,19 @@ function DashboardAction({
   return (
     <Link
       href={href}
-      className="group min-h-[185px] rounded-[22px] border border-white/10 bg-gradient-to-br from-[#173E70] to-[#0D2D56] p-5 text-white shadow-[inset_0_1px_0_rgba(255,255,255,.06)] transition hover:-translate-y-1 hover:from-[#1A477F] hover:to-[#103766]"
+      className="group min-h-[165px] rounded-[20px] border border-white/10 bg-gradient-to-br from-[#173E70] to-[#0D2D56] p-4 text-white shadow-[inset_0_1px_0_rgba(255,255,255,.06)] transition hover:-translate-y-1 hover:from-[#1A477F] hover:to-[#103766]"
     >
-      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#285694] text-[#8CB8FF] shadow-inner">
+      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#285694] text-[#8CB8FF] shadow-inner">
         {icon}
       </div>
 
-      <h3 className="mt-4 text-xl font-black">{title}</h3>
+      <h3 className="mt-3 text-lg font-black">{title}</h3>
 
-      <p className="mt-2 max-w-xs text-sm leading-6 text-white/65">
+      <p className="mt-1.5 max-w-xs text-xs leading-6 text-white/65">
         {description}
       </p>
 
-      <div className="mt-3 flex items-center gap-2 text-sm font-black text-[#F5B82E]">
+      <div className="mt-2 flex items-center gap-2 text-sm font-black text-[#F5B82E]">
         فتح
         <ArrowLeft size={18} />
       </div>
