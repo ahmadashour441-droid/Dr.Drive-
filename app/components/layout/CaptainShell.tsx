@@ -1,7 +1,7 @@
 "use client";
 
 import { ReactNode, useState } from "react";
-import Header from "./Header";
+import CaptainHeader from "./CaptainHeader";
 import CaptainSidebar from "./CaptainSidebar";
 
 interface Props {
@@ -18,30 +18,43 @@ export default function CaptainShell({
   return (
     <div
       dir="rtl"
-      className="flex min-h-screen w-full bg-[#F5F7FB]"
+      className="
+        flex
+        min-h-screen
+        w-full
+        overflow-x-hidden
+        bg-[#F4F7FB]
+      "
     >
+      {/* DESKTOP SIDEBAR */}
 
-      {/* =====================
-          DESKTOP SIDEBAR
-      ====================== */}
-
-      <aside className="hidden h-screen w-72 shrink-0 lg:block">
-
-        <div className="h-full w-full">
+      <aside
+        className="
+          hidden
+          h-screen
+          w-[270px]
+          shrink-0
+          lg:block
+        "
+      >
+        <div className="sticky top-0 h-screen">
           <CaptainSidebar />
         </div>
-
       </aside>
 
-      {/* =====================
-          MOBILE SIDEBAR
-      ====================== */}
+      {/* MOBILE OVERLAY */}
 
       {sidebarOpen && (
         <>
-
           <div
-            className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+            className="
+              fixed
+              inset-0
+              z-40
+              bg-slate-950/50
+              backdrop-blur-sm
+              lg:hidden
+            "
             onClick={() => setSidebarOpen(false)}
           />
 
@@ -52,8 +65,9 @@ export default function CaptainShell({
               top-0
               z-50
               h-screen
-              w-72
+              w-[280px]
               max-w-[85vw]
+              shadow-2xl
               lg:hidden
             "
           >
@@ -63,19 +77,14 @@ export default function CaptainShell({
               }
             />
           </aside>
-
         </>
       )}
 
-      {/* =====================
-          MAIN
-      ====================== */}
+      {/* MAIN */}
 
       <div className="flex min-w-0 flex-1 flex-col">
 
-        <Header
-          title="لوحة التحكم"
-          subtitle="مرحباً بك"
+        <CaptainHeader
           fullName={fullName}
           onMenuClick={() =>
             setSidebarOpen((prev) => !prev)
@@ -97,7 +106,6 @@ export default function CaptainShell({
         </main>
 
       </div>
-
     </div>
   );
 }

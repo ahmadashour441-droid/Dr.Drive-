@@ -1,7 +1,18 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+
+import {
+  LayoutDashboard,
+  ClipboardList,
+  Wallet,
+  FileText,
+  UserCircle,
+  LogOut,
+  Headphones,
+} from "lucide-react";
 
 type Props = {
   onNavigate?: () => void;
@@ -9,34 +20,29 @@ type Props = {
 
 const links = [
   {
-    name: "لوحة التحكم",
+    name: "الرئيسية",
     href: "/dashboard",
-    icon: "⌂",
+    icon: LayoutDashboard,
   },
   {
     name: "طلباتي",
     href: "/dashboard/orders",
-    icon: "▣",
-  },
-  {
-    name: "المستحقات",
-    href: "/dashboard/accounting",
-    icon: "▤",
+    icon: ClipboardList,
   },
   {
     name: "شحن المحفظة",
     href: "/dashboard/recharge",
-    icon: "▣",
+    icon: Wallet,
   },
   {
     name: "كشف الحساب",
     href: "/dashboard/accounting",
-    icon: "▤",
+    icon: FileText,
   },
   {
     name: "الملف الشخصي",
     href: "/dashboard/profile",
-    icon: "♙",
+    icon: UserCircle,
   },
 ];
 
@@ -54,13 +60,14 @@ export default function CaptainSidebar({
         w-full
         flex-col
         overflow-hidden
-        bg-[#061D38]
+        bg-[#061B35]
         text-white
       "
     >
-      {/* Logo */}
 
-      <div className="border-b border-white/10 px-5 py-5">
+      {/* LOGO */}
+
+      <div className="border-b border-white/10 px-5 py-6">
 
         <div className="flex items-center gap-3">
 
@@ -72,43 +79,66 @@ export default function CaptainSidebar({
               shrink-0
               items-center
               justify-center
+              overflow-hidden
               rounded-xl
-              bg-[#FFB51B]
-              text-2xl
-              font-black
-              text-[#061D38]
+              bg-white
             "
           >
-            D
+            <Image
+              src="/logo.png"
+              alt="Dr.Drive"
+              width={42}
+              height={42}
+              className="h-full w-full object-contain"
+            />
           </div>
 
           <div>
-            <h1 className="text-xl font-extrabold">
+
+            <h1 className="text-xl font-black">
               Dr.Drive
             </h1>
 
-            <p className="text-sm text-[#FFB51B]">
+            <p className="mt-0.5 text-xs font-medium text-[#F5B82E]">
               وصلني الآن
             </p>
+
           </div>
 
         </div>
 
-        <p className="mt-4 text-xs text-slate-400">
-          لوحة تحكم الكابتن
-        </p>
+        <div
+          className="
+            mt-5
+            rounded-xl
+            bg-white/[0.06]
+            px-4
+            py-3
+          "
+        >
+          <p className="text-xs text-slate-400">
+            بوابة الكباتن
+          </p>
+
+          <p className="mt-1 text-sm font-bold text-white">
+            إدارة حسابك بسهولة
+          </p>
+        </div>
 
       </div>
 
-      {/* Navigation */}
+      {/* NAVIGATION */}
 
-      <nav className="flex-1 space-y-2 overflow-y-auto p-4">
+      <nav className="flex-1 space-y-1.5 overflow-y-auto p-4">
 
         {links.map((link) => {
-
           const active =
             pathname === link.href ||
-            pathname.startsWith(link.href + "/");
+            pathname.startsWith(
+              link.href + "/"
+            );
+
+          const Icon = link.icon;
 
           return (
             <Link
@@ -121,66 +151,91 @@ export default function CaptainSidebar({
                 gap-3
                 rounded-xl
                 px-4
-                py-3
+                py-3.5
+                text-sm
+                font-bold
                 transition-all
-                duration-200
                 ${
                   active
-                    ? "bg-blue-600 text-white shadow-lg"
-                    : "text-slate-300 hover:bg-white/10 hover:text-white"
+                    ? "bg-blue-600 text-white shadow-lg shadow-blue-950/20"
+                    : "text-slate-300 hover:bg-white/[0.07] hover:text-white"
                 }
               `}
             >
 
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 text-lg">
-                {link.icon}
+              <span
+                className={`
+                  flex
+                  h-9
+                  w-9
+                  shrink-0
+                  items-center
+                  justify-center
+                  rounded-lg
+                  ${
+                    active
+                      ? "bg-white/15"
+                      : "bg-white/[0.06]"
+                  }
+                `}
+              >
+                <Icon size={19} />
               </span>
 
-              <span className="font-semibold">
+              <span>
                 {link.name}
               </span>
 
             </Link>
           );
-
         })}
 
       </nav>
 
-      {/* Help */}
+      {/* SUPPORT */}
 
-      <div className="border-t border-white/10 p-4">
+      <div className="px-4 pb-3">
 
-        <div className="mb-3 rounded-xl bg-white/5 p-3">
+        <div
+          className="
+            rounded-2xl
+            border
+            border-white/10
+            bg-white/[0.05]
+            p-4
+          "
+        >
 
-          <p className="text-sm font-bold">
+          <div
+            className="
+              flex
+              h-10
+              w-10
+              items-center
+              justify-center
+              rounded-xl
+              bg-[#F5B82E]
+              text-[#061B35]
+            "
+          >
+            <Headphones size={20} />
+          </div>
+
+          <p className="mt-3 text-sm font-black">
             تحتاج مساعدة؟
           </p>
 
-          <p className="mt-1 text-xs text-slate-400">
-            الدعم الفني
+          <p className="mt-1 text-xs leading-5 text-slate-400">
+            تواصل مع الإدارة عند الحاجة.
           </p>
-
-          <button
-            type="button"
-            className="
-              mt-3
-              w-full
-              rounded-lg
-              bg-blue-600
-              py-2
-              text-sm
-              font-bold
-              text-white
-              hover:bg-blue-700
-            "
-          >
-            تواصل الآن
-          </button>
 
         </div>
 
-        {/* Logout */}
+      </div>
+
+      {/* LOGOUT */}
+
+      <div className="border-t border-white/10 p-4">
 
         <Link
           href="/api/logout"
@@ -190,11 +245,14 @@ export default function CaptainSidebar({
             flex
             items-center
             justify-center
-            gap-3
+            gap-2
             rounded-xl
-            bg-red-600/10
+            border
+            border-red-500/20
+            bg-red-500/10
             px-4
             py-3
+            text-sm
             font-bold
             text-red-400
             transition
@@ -202,8 +260,11 @@ export default function CaptainSidebar({
             hover:text-white
           "
         >
-          <span>↪</span>
-          <span>تسجيل الخروج</span>
+
+          <LogOut size={18} />
+
+          تسجيل الخروج
+
         </Link>
 
       </div>
