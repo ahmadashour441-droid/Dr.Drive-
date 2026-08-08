@@ -18,32 +18,32 @@ export default function CaptainShell({
   return (
     <div
       dir="rtl"
-      className="flex min-h-screen w-full overflow-x-hidden bg-[#F5F7FB]"
+      className="flex min-h-screen w-full bg-[#F5F7FB]"
     >
-      {/* =========================
-          DESKTOP SIDEBAR
-      ========================= */}
 
-      <aside className="hidden w-72 shrink-0 lg:block">
-        <div className="sticky top-0 h-screen">
+      {/* =====================
+          DESKTOP SIDEBAR
+      ====================== */}
+
+      <aside className="hidden h-screen w-72 shrink-0 lg:block">
+
+        <div className="h-full w-full">
           <CaptainSidebar />
         </div>
+
       </aside>
 
-      {/* =========================
+      {/* =====================
           MOBILE SIDEBAR
-      ========================= */}
+      ====================== */}
 
       {sidebarOpen && (
         <>
-          {/* Overlay */}
 
           <div
             className="fixed inset-0 z-40 bg-black/50 lg:hidden"
             onClick={() => setSidebarOpen(false)}
           />
-
-          {/* Drawer */}
 
           <aside
             className="
@@ -54,24 +54,24 @@ export default function CaptainShell({
               h-screen
               w-72
               max-w-[85vw]
-              shadow-2xl
               lg:hidden
             "
           >
             <CaptainSidebar
-              onNavigate={() => setSidebarOpen(false)}
+              onNavigate={() =>
+                setSidebarOpen(false)
+              }
             />
           </aside>
+
         </>
       )}
 
-      {/* =========================
-          MAIN AREA
-      ========================= */}
+      {/* =====================
+          MAIN
+      ====================== */}
 
       <div className="flex min-w-0 flex-1 flex-col">
-
-        {/* Header */}
 
         <Header
           title="لوحة التحكم"
@@ -81,8 +81,6 @@ export default function CaptainShell({
             setSidebarOpen((prev) => !prev)
           }
         />
-
-        {/* Page */}
 
         <main
           className="
@@ -99,6 +97,7 @@ export default function CaptainShell({
         </main>
 
       </div>
+
     </div>
   );
 }

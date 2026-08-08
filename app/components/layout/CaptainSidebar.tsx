@@ -51,19 +51,19 @@ export default function CaptainSidebar({
       className="
         flex
         h-full
-        w-72
+        w-full
         flex-col
-        bg-[#061B35]
+        overflow-hidden
+        bg-[#061D38]
         text-white
-        shadow-2xl
       "
     >
-      {/* Logo / Brand */}
+      {/* Logo */}
 
-      <div className="border-b border-white/10 px-6 py-7">
+      <div className="border-b border-white/10 px-5 py-5">
+
         <div className="flex items-center gap-3">
-          
-          {/* Logo */}
+
           <div
             className="
               flex
@@ -73,43 +73,39 @@ export default function CaptainSidebar({
               items-center
               justify-center
               rounded-xl
-              bg-[#F5B82E]
+              bg-[#FFB51B]
               text-2xl
               font-black
-              text-[#061B35]
-              shadow-lg
+              text-[#061D38]
             "
           >
             D
           </div>
 
           <div>
-            <h1 className="text-xl font-black tracking-tight">
-              Dr.<span className="text-[#F5B82E]">Drive</span>
+            <h1 className="text-xl font-extrabold">
+              Dr.Drive
             </h1>
 
-            <p className="mt-1 text-sm text-white/60">
+            <p className="text-sm text-[#FFB51B]">
               وصلني الآن
             </p>
           </div>
+
         </div>
 
-        <div className="mt-5 rounded-xl bg-white/5 px-4 py-3">
-          <p className="text-xs text-white/50">
-            بوابة الكباتن
-          </p>
+        <p className="mt-4 text-xs text-slate-400">
+          لوحة تحكم الكابتن
+        </p>
 
-          <p className="mt-1 text-sm font-semibold text-white">
-            لوحة تحكم الكابتن
-          </p>
-        </div>
       </div>
 
       {/* Navigation */}
 
-      <nav className="flex-1 space-y-2 overflow-y-auto px-4 py-5">
+      <nav className="flex-1 space-y-2 overflow-y-auto p-4">
 
         {links.map((link) => {
+
           const active =
             pathname === link.href ||
             pathname.startsWith(link.href + "/");
@@ -120,153 +116,72 @@ export default function CaptainSidebar({
               href={link.href}
               onClick={onNavigate}
               className={`
-                group
                 flex
                 items-center
-                gap-4
+                gap-3
                 rounded-xl
                 px-4
-                py-3.5
+                py-3
                 transition-all
                 duration-200
                 ${
                   active
-                    ? "bg-[#1769E8] text-white shadow-lg shadow-blue-900/30"
-                    : "text-white/70 hover:bg-white/5 hover:text-white"
+                    ? "bg-blue-600 text-white shadow-lg"
+                    : "text-slate-300 hover:bg-white/10 hover:text-white"
                 }
               `}
             >
-              <span
-                className={`
-                  flex
-                  h-9
-                  w-9
-                  items-center
-                  justify-center
-                  rounded-lg
-                  text-xl
-                  font-bold
-                  ${
-                    active
-                      ? "bg-white/15 text-[#F5B82E]"
-                      : "bg-white/5 text-white/70 group-hover:text-[#F5B82E]"
-                  }
-                `}
-              >
+
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 text-lg">
                 {link.icon}
               </span>
 
-              <span className="text-sm font-semibold">
+              <span className="font-semibold">
                 {link.name}
               </span>
+
             </Link>
           );
+
         })}
 
-        {/* Support */}
+      </nav>
 
-        <div className="my-4 border-t border-white/10" />
+      {/* Help */}
 
-        <div
-          className="
-            rounded-2xl
-            border
-            border-white/10
-            bg-white/5
-            p-4
-          "
-        >
-          <div className="mb-3 flex items-center gap-3">
-            <div
-              className="
-                flex
-                h-9
-                w-9
-                items-center
-                justify-center
-                rounded-lg
-                bg-blue-500/20
-                text-lg
-              "
-            >
-              ?
-            </div>
+      <div className="border-t border-white/10 p-4">
 
-            <div>
-              <p className="text-sm font-bold">
-                تحتاج مساعدة؟
-              </p>
+        <div className="mb-3 rounded-xl bg-white/5 p-3">
 
-              <p className="mt-1 text-xs text-white/50">
-                الدعم الفني
-              </p>
-            </div>
-          </div>
+          <p className="text-sm font-bold">
+            تحتاج مساعدة؟
+          </p>
+
+          <p className="mt-1 text-xs text-slate-400">
+            الدعم الفني
+          </p>
 
           <button
             type="button"
             className="
+              mt-3
               w-full
               rounded-lg
-              bg-[#1769E8]
-              px-3
-              py-2.5
+              bg-blue-600
+              py-2
               text-sm
               font-bold
               text-white
-              transition
-              hover:bg-blue-600
+              hover:bg-blue-700
             "
           >
             تواصل الآن
           </button>
+
         </div>
-      </nav>
 
-      {/* Captain Level */}
+        {/* Logout */}
 
-      <div className="px-4 pb-4">
-        <div
-          className="
-            rounded-2xl
-            border
-            border-white/10
-            bg-[#0B2B52]
-            p-4
-          "
-        >
-          <div className="flex items-center gap-3">
-            <div
-              className="
-                flex
-                h-10
-                w-10
-                items-center
-                justify-center
-                rounded-full
-                bg-[#F5B82E]
-                text-xl
-              "
-            >
-              ★
-            </div>
-
-            <div>
-              <p className="text-sm font-bold">
-                مستوى الكابتن
-              </p>
-
-              <p className="text-xs text-white/50">
-                Dr.Drive
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Logout */}
-
-      <div className="border-t border-white/10 p-4">
         <Link
           href="/api/logout"
           replace
@@ -277,28 +192,22 @@ export default function CaptainSidebar({
             justify-center
             gap-3
             rounded-xl
-            border
-            border-red-500/20
-            bg-red-500/10
+            bg-red-600/10
             px-4
             py-3
-            text-sm
             font-bold
             text-red-400
             transition
-            hover:bg-red-500
+            hover:bg-red-600
             hover:text-white
           "
         >
-          <span className="text-lg">
-            ↪
-          </span>
-
-          <span>
-            تسجيل الخروج
-          </span>
+          <span>↪</span>
+          <span>تسجيل الخروج</span>
         </Link>
+
       </div>
+
     </aside>
   );
 }
