@@ -1,19 +1,18 @@
 import { cookies } from "next/headers";
 import Link from "next/link";
-
 import {
   ArrowLeft,
   ArrowUpRight,
-  Bell,
+  Building2,
   ClipboardList,
   CreditCard,
   FileText,
   Headphones,
-  Menu,
-  UserCircle2,
+  UserCircle,
   Wallet,
-  CircleDollarSign,
   TrendingUp,
+  CircleDollarSign,
+  Landmark,
 } from "lucide-react";
 
 import { supabaseServer } from "@/lib/supabaseServer";
@@ -29,9 +28,9 @@ export default async function DashboardPage() {
 
   const user = JSON.parse(session.value);
 
-  // =====================================================
-  // ORDERS
-  // =====================================================
+  // =========================
+  // الطلبات
+  // =========================
 
   const { data: orders } = await supabaseServer
     .from("Orders")
@@ -48,9 +47,9 @@ export default async function DashboardPage() {
       ascending: false,
     });
 
-  // =====================================================
-  // BALANCE TRANSACTIONS
-  // =====================================================
+  // =========================
+  // الحركات المالية
+  // =========================
 
   const { data: transactions } = await supabaseServer
     .from("BalanceTransactions")
@@ -64,9 +63,9 @@ export default async function DashboardPage() {
   const allOrders = orders ?? [];
   const allTransactions = transactions ?? [];
 
-  // =====================================================
-  // STATISTICS
-  // =====================================================
+  // =========================
+  // الحسابات
+  // =========================
 
   const totalOrders = allOrders.length;
 
@@ -105,203 +104,32 @@ export default async function DashboardPage() {
       0
     );
 
-  const latestOrders = allOrders.slice(0, 5);
-  const latestTransactions =
-    allTransactions.slice(0, 5);
-
-  // =====================================================
-  // DATE
-  // =====================================================
-
-  const now = new Date();
-
-  const dateText = now.toLocaleDateString(
-    "ar-JO",
-    {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    }
-  );
-
-  const timeText = now.toLocaleTimeString(
-    "ar-JO",
-    {
-      hour: "2-digit",
-      minute: "2-digit",
-    }
-  );
-
-  // =====================================================
-  // PAGE
-  // =====================================================
-
   return (
     <main
       dir="rtl"
-      className="min-h-screen bg-[#F4F7FB]"
+      className="
+        min-h-screen
+        bg-[#F3F6FA]
+        text-[#12233F]
+      "
     >
-      <div className="mx-auto w-full max-w-[1500px] px-3 py-4 sm:px-5 md:px-7 lg:px-8">
 
-        {/* =================================================
-            MOBILE / TOP HEADER
-        ================================================= */}
+      <div className="mx-auto w-full max-w-[1500px]">
 
-        <header
-          className="
-            mb-4
-            flex
-            h-[72px]
-            items-center
-            justify-between
-            rounded-2xl
-            bg-white
-            px-3
-            shadow-sm
-            ring-1
-            ring-slate-100
-            sm:h-[82px]
-            sm:px-5
-          "
-        >
-          {/* RIGHT */}
-
-          <div className="flex items-center gap-3">
-
-            <div
-              className="
-                flex
-                h-12
-                w-12
-                items-center
-                justify-center
-                rounded-full
-                bg-blue-50
-                text-blue-600
-                sm:h-14
-                sm:w-14
-              "
-            >
-              <UserCircle2
-                size={38}
-                strokeWidth={1.7}
-              />
-            </div>
-
-            <div className="hidden sm:block">
-
-              <p className="text-sm font-black text-[#071D38]">
-                {user.full_name}
-              </p>
-
-              <p className="text-xs text-slate-400">
-                كابتن Dr.Drive
-              </p>
-
-            </div>
-
-          </div>
-
-          {/* CENTER */}
-
-          <div className="text-center">
-
-            <h1
-              className="
-                text-lg
-                font-black
-                text-[#071D38]
-                sm:text-2xl
-              "
-            >
-              لوحة تحكم الكابتن
-            </h1>
-
-            <p className="hidden text-xs text-slate-400 sm:block">
-              Dr.Drive وصلني الآن
-            </p>
-
-          </div>
-
-          {/* LEFT */}
-
-          <div className="flex items-center gap-2">
-
-            <button
-              type="button"
-              className="
-                relative
-                flex
-                h-12
-                w-12
-                items-center
-                justify-center
-                rounded-2xl
-                bg-slate-50
-                text-[#071D38]
-                sm:h-14
-                sm:w-14
-              "
-            >
-              <Bell size={25} />
-
-              <span
-                className="
-                  absolute
-                  right-3
-                  top-3
-                  h-2.5
-                  w-2.5
-                  rounded-full
-                  bg-red-500
-                  ring-2
-                  ring-white
-                "
-              />
-            </button>
-
-            <button
-              type="button"
-              className="
-                flex
-                h-12
-                w-12
-                items-center
-                justify-center
-                rounded-2xl
-                bg-slate-50
-                text-[#071D38]
-                lg:hidden
-                sm:h-14
-                sm:w-14
-              "
-            >
-              <Menu size={28} />
-            </button>
-
-          </div>
-
-        </header>
-
-        {/* =================================================
+        {/* =====================================================
             HERO
-        ================================================= */}
+        ===================================================== */}
 
         <section
           className="
             relative
-            mb-5
             min-h-[430px]
             overflow-hidden
-            rounded-[30px]
-            bg-[#071D38]
-            shadow-xl
-            sm:min-h-[470px]
+            bg-[#061B35]
           "
         >
 
-          {/* HERO IMAGE */}
+          {/* صورة الخلفية */}
 
           <div
             className="
@@ -309,6 +137,7 @@ export default async function DashboardPage() {
               inset-0
               bg-cover
               bg-center
+              bg-no-repeat
             "
             style={{
               backgroundImage:
@@ -316,43 +145,17 @@ export default async function DashboardPage() {
             }}
           />
 
-          {/* Dark overlay */}
+          {/* طبقة داكنة حتى يظل النص واضح */}
 
           <div
             className="
               absolute
               inset-0
-              bg-[#061B35]/30
+              bg-[#061B35]/45
             "
           />
 
-          {/* Decorative circles */}
-
-          <div
-            className="
-              absolute
-              -right-32
-              -top-32
-              h-[420px]
-              w-[420px]
-              rounded-full
-              bg-blue-500/10
-            "
-          />
-
-          <div
-            className="
-              absolute
-              -bottom-48
-              left-20
-              h-[450px]
-              w-[450px]
-              rounded-full
-              bg-[#F5B82E]/10
-            "
-          />
-
-          {/* HERO CONTENT */}
+          {/* المحتوى */}
 
           <div
             className="
@@ -362,17 +165,15 @@ export default async function DashboardPage() {
               min-h-[430px]
               flex-col
               justify-between
-              gap-8
-              p-5
-              sm:min-h-[470px]
-              sm:p-8
-              lg:p-10
+              p-6
+              md:p-10
+              lg:p-12
             "
           >
 
-            {/* TOP */}
+            {/* الترحيب */}
 
-            <div className="max-w-xl">
+            <div className="max-w-[680px]">
 
               <div
                 className="
@@ -385,130 +186,77 @@ export default async function DashboardPage() {
                   bg-black/20
                   px-4
                   py-2
-                  text-xs
+                  text-sm
                   font-bold
                   text-white
-                  backdrop-blur-sm
+                  backdrop-blur
                 "
               >
-
-                <span className="h-2 w-2 rounded-full bg-green-400" />
-
+                <span className="h-2.5 w-2.5 rounded-full bg-green-400" />
                 حسابك نشط
-
               </div>
 
-              <h2
+              <h1
                 className="
                   mt-5
-                  text-3xl
+                  text-4xl
                   font-black
                   leading-tight
                   text-white
-                  sm:text-4xl
-                  lg:text-5xl
+                  md:text-6xl
                 "
               >
+                👋 مرحباً بك يا كابتن
+              </h1>
 
-                مرحباً بك يا كابتن
-
-                <br />
-
-                <span className="text-[#F5B82E]">
-                  {user.full_name}
-                </span>
-
+              <h2
+                className="
+                  mt-2
+                  text-3xl
+                  font-black
+                  text-[#F5B82E]
+                  md:text-5xl
+                "
+              >
+                {user.full_name}
               </h2>
 
               <p
                 className="
-                  mt-4
-                  max-w-lg
+                  mt-5
+                  max-w-xl
                   text-sm
-                  leading-7
-                  text-white/80
-                  sm:text-base
+                  leading-8
+                  text-white/85
+                  md:text-lg
                 "
               >
-                أهلاً بك في بوابة كباتن Dr.Drive.
-                تابع طلباتك، رصيدك ومستحقاتك من مكان واحد.
+                تابع طلباتك، رصيدك ومستحقاتك
+                من مكان واحد.
               </p>
 
-              {/* DATE */}
+              {/* أزرار */}
 
-              <div className="mt-5 flex flex-wrap gap-2">
-
-                <div
-                  className="
-                    rounded-xl
-                    bg-black/30
-                    px-4
-                    py-2
-                    text-xs
-                    font-bold
-                    text-white
-                    backdrop-blur-sm
-                  "
-                >
-                  📅 {dateText}
-                </div>
-
-                <div
-                  className="
-                    rounded-xl
-                    bg-black/30
-                    px-4
-                    py-2
-                    text-xs
-                    font-bold
-                    text-white
-                    backdrop-blur-sm
-                  "
-                >
-                  🕐 {timeText}
-                </div>
-
-              </div>
-
-            </div>
-
-            {/* BOTTOM */}
-
-            <div
-              className="
-                flex
-                flex-col
-                gap-4
-                sm:flex-row
-                sm:items-end
-                sm:justify-between
-              "
-            >
-
-              {/* BUTTONS */}
-
-              <div className="flex flex-wrap gap-3">
+              <div className="mt-7 flex flex-wrap gap-3">
 
                 <Link
                   href="/dashboard/recharge"
                   className="
                     inline-flex
                     items-center
-                    justify-center
                     gap-2
                     rounded-2xl
                     bg-[#F5B82E]
-                    px-5
-                    py-3
-                    text-sm
+                    px-6
+                    py-3.5
                     font-black
-                    text-[#071D38]
+                    text-[#061B35]
                     shadow-lg
                     transition
-                    hover:bg-yellow-300
+                    hover:scale-[1.02]
                   "
                 >
-                  <Wallet size={19} />
+                  <Wallet size={20} />
                   شحن المحفظة
                 </Link>
 
@@ -517,1175 +265,465 @@ export default async function DashboardPage() {
                   className="
                     inline-flex
                     items-center
-                    justify-center
                     gap-2
                     rounded-2xl
                     border
                     border-white/30
                     bg-white/10
-                    px-5
-                    py-3
-                    text-sm
+                    px-6
+                    py-3.5
                     font-black
                     text-white
-                    backdrop-blur-sm
+                    backdrop-blur
                     transition
                     hover:bg-white/20
                   "
                 >
                   طلباتي
-                  <ArrowLeft size={19} />
+                  <ArrowLeft size={20} />
                 </Link>
 
               </div>
 
-              {/* WALLET HERO CARD */}
-
-              <div
-                className="
-                  w-full
-                  max-w-[330px]
-                  rounded-[25px]
-                  border
-                  border-white/20
-                  bg-blue-600/80
-                  p-5
-                  shadow-2xl
-                  backdrop-blur-md
-                  sm:p-6
-                "
-              >
-
-                <div className="flex items-center justify-between">
-
-                  <div>
-
-                    <p className="text-sm font-bold text-white/80">
-                      رصيد المحفظة
-                    </p>
-
-                    <p className="mt-1 text-xs text-white/60">
-                      الرصيد المتاح حالياً
-                    </p>
-
-                  </div>
-
-                  <div
-                    className="
-                      flex
-                      h-12
-                      w-12
-                      items-center
-                      justify-center
-                      rounded-full
-                      bg-white/20
-                      text-white
-                    "
-                  >
-                    <Wallet size={25} />
-                  </div>
-
-                </div>
-
-                <div className="mt-5">
-
-                  <span
-                    className={`text-4xl font-black sm:text-5xl ${
-                      walletBalance >= 0
-                        ? "text-white"
-                        : "text-red-200"
-                    }`}
-                  >
-                    {walletBalance.toFixed(2)}
-                  </span>
-
-                  <span className="mr-2 text-lg font-bold text-white/70">
-                    JD
-                  </span>
-
-                </div>
-
-              </div>
-
             </div>
 
           </div>
-
         </section>
 
-        {/* =================================================
-            QUICK MAIN CARDS
-        ================================================= */}
+        {/* =====================================================
+            WALLET + WITHDRAW
+        ===================================================== */}
 
         <section
           className="
-            mb-5
-            grid
-            grid-cols-1
-            gap-4
-            md:grid-cols-2
-          "
-        >
-
-          {/* Recharge */}
-
-          <Link
-            href="/dashboard/recharge"
-            className="
-              group
-              flex
-              min-h-[150px]
-              items-center
-              justify-between
-              rounded-[25px]
-              bg-gradient-to-br
-              from-green-400
-              to-green-600
-              p-6
-              text-white
-              shadow-lg
-              transition
-              hover:-translate-y-1
-            "
-          >
-
-            <div>
-
-              <p className="text-xl font-black">
-                شحن المحفظة
-              </p>
-
-              <p className="mt-2 text-sm text-white/80">
-                قم بشحن رصيدك للبدء باستقبال الطلبات
-              </p>
-
-            </div>
-
-            <div
-              className="
-                flex
-                h-16
-                w-16
-                shrink-0
-                items-center
-                justify-center
-                rounded-2xl
-                bg-white/20
-              "
-            >
-              <CreditCard size={34} />
-            </div>
-
-          </Link>
-
-          {/* Withdraw */}
-
-          <Link
-            href="/dashboard/accounting"
-            className="
-              group
-              flex
-              min-h-[150px]
-              items-center
-              justify-between
-              rounded-[25px]
-              bg-gradient-to-br
-              from-purple-500
-              to-purple-700
-              p-6
-              text-white
-              shadow-lg
-              transition
-              hover:-translate-y-1
-            "
-          >
-
-            <div>
-
-              <p className="text-xl font-black">
-                طلب سحب المستحقات
-              </p>
-
-              <p className="mt-2 text-sm text-white/80">
-                حول مستحقاتك إلى حسابك البنكي
-              </p>
-
-            </div>
-
-            <div
-              className="
-                flex
-                h-16
-                w-16
-                shrink-0
-                items-center
-                justify-center
-                rounded-2xl
-                bg-white/20
-              "
-            >
-              <CircleDollarSign size={34} />
-            </div>
-
-          </Link>
-
-        </section>
-
-        {/* =================================================
-            STATISTICS
-        ================================================= */}
-
-        <section
-          className="
-            mb-5
-            grid
-            grid-cols-1
-            gap-4
-            sm:grid-cols-2
-            lg:grid-cols-3
-          "
-        >
-
-          {/* Earnings */}
-
-          <div
-            className="
-              rounded-[22px]
-              bg-white
-              p-5
-              shadow-sm
-              ring-1
-              ring-slate-100
-            "
-          >
-
-            <div className="flex items-center gap-4">
-
-              <div
-                className="
-                  flex
-                  h-14
-                  w-14
-                  items-center
-                  justify-center
-                  rounded-full
-                  bg-green-100
-                  text-green-600
-                "
-              >
-                <TrendingUp size={27} />
-              </div>
-
-              <div>
-
-                <p className="text-sm font-bold text-slate-500">
-                  إجمالي الأرباح
-                </p>
-
-                <p className="mt-1 text-2xl font-black text-green-600">
-                  {totalEarnings.toFixed(2)}
-                  <span className="mr-1 text-sm">
-                    JD
-                  </span>
-                </p>
-
-                <p className="text-xs text-slate-400">
-                  هذا الأسبوع
-                </p>
-
-              </div>
-
-            </div>
-
-          </div>
-
-          {/* Due */}
-
-          <div
-            className="
-              rounded-[22px]
-              bg-white
-              p-5
-              shadow-sm
-              ring-1
-              ring-slate-100
-            "
-          >
-
-            <div className="flex items-center gap-4">
-
-              <div
-                className="
-                  flex
-                  h-14
-                  w-14
-                  items-center
-                  justify-center
-                  rounded-full
-                  bg-orange-100
-                  text-orange-500
-                "
-              >
-                <CircleDollarSign size={27} />
-              </div>
-
-              <div>
-
-                <p className="text-sm font-bold text-slate-500">
-                  المستحقات غير المسددة
-                </p>
-
-                <p className="mt-1 text-2xl font-black text-orange-500">
-                  {unpaidBalance.toFixed(2)}
-                  <span className="mr-1 text-sm">
-                    JD
-                  </span>
-                </p>
-
-                <p className="text-xs text-slate-400">
-                  متبقي الدفع
-                </p>
-
-              </div>
-
-            </div>
-
-          </div>
-
-          {/* Orders */}
-
-          <div
-            className="
-              rounded-[22px]
-              bg-white
-              p-5
-              shadow-sm
-              ring-1
-              ring-slate-100
-            "
-          >
-
-            <div className="flex items-center gap-4">
-
-              <div
-                className="
-                  flex
-                  h-14
-                  w-14
-                  items-center
-                  justify-center
-                  rounded-full
-                  bg-blue-100
-                  text-blue-600
-                "
-              >
-                <ClipboardList size={27} />
-              </div>
-
-              <div>
-
-                <p className="text-sm font-bold text-slate-500">
-                  عدد الطلبات
-                </p>
-
-                <p className="mt-1 text-3xl font-black text-blue-600">
-                  {totalOrders}
-                </p>
-
-                <p className="text-xs text-slate-400">
-                  الطلبات الحالية
-                </p>
-
-              </div>
-
-            </div>
-
-          </div>
-
-          {/* Wallet */}
-
-          <div
-            className="
-              rounded-[22px]
-              bg-white
-              p-5
-              shadow-sm
-              ring-1
-              ring-slate-100
-            "
-          >
-
-            <div className="flex items-center gap-4">
-
-              <div
-                className="
-                  flex
-                  h-14
-                  w-14
-                  items-center
-                  justify-center
-                  rounded-full
-                  bg-blue-100
-                  text-blue-600
-                "
-              >
-                <Wallet size={27} />
-              </div>
-
-              <div>
-
-                <p className="text-sm font-bold text-slate-500">
-                  رصيد المحفظة
-                </p>
-
-                <p
-                  className={`mt-1 text-2xl font-black ${
-                    walletBalance >= 0
-                      ? "text-blue-600"
-                      : "text-red-600"
-                  }`}
-                >
-                  {walletBalance.toFixed(2)}
-                  <span className="mr-1 text-sm">
-                    JD
-                  </span>
-                </p>
-
-                <p className="text-xs text-slate-400">
-                  متاح للسحب
-                </p>
-
-              </div>
-
-            </div>
-
-          </div>
-
-          {/* Recharge */}
-
-          <Link
-            href="/dashboard/recharge"
-            className="
-              rounded-[22px]
-              bg-white
-              p-5
-              shadow-sm
-              ring-1
-              ring-slate-100
-              transition
-              hover:-translate-y-1
-            "
-          >
-
-            <div className="flex items-center gap-4">
-
-              <div
-                className="
-                  flex
-                  h-14
-                  w-14
-                  items-center
-                  justify-center
-                  rounded-full
-                  bg-purple-100
-                  text-purple-600
-                "
-              >
-                <CreditCard size={27} />
-              </div>
-
-              <div>
-
-                <p className="text-sm font-bold text-slate-500">
-                  شحن المحفظة
-                </p>
-
-                <p className="mt-1 font-black text-slate-800">
-                  قم بشحن محفظتك
-                </p>
-
-                <p className="text-xs text-slate-400">
-                  للبدء باستقبال الطلبات
-                </p>
-
-              </div>
-
-            </div>
-
-          </Link>
-
-          {/* Withdraw */}
-
-          <Link
-            href="/dashboard/accounting"
-            className="
-              rounded-[22px]
-              bg-white
-              p-5
-              shadow-sm
-              ring-1
-              ring-slate-100
-              transition
-              hover:-translate-y-1
-            "
-          >
-
-            <div className="flex items-center gap-4">
-
-              <div
-                className="
-                  flex
-                  h-14
-                  w-14
-                  items-center
-                  justify-center
-                  rounded-full
-                  bg-green-100
-                  text-green-600
-                "
-              >
-                <CircleDollarSign size={27} />
-              </div>
-
-              <div>
-
-                <p className="text-sm font-bold text-slate-500">
-                  طلب سحب المستحقات
-                </p>
-
-                <p className="mt-1 font-black text-slate-800">
-                  تحويل مستحقاتك
-                </p>
-
-                <p className="text-xs text-slate-400">
-                  إلى حسابك البنكي
-                </p>
-
-              </div>
-
-            </div>
-
-          </Link>
-
-        </section>
-
-        {/* =================================================
-            THREE MAIN NAVIGATION CARDS
-        ================================================= */}
-
-        <section
-          className="
-            mb-5
-            rounded-[28px]
-            bg-[#071D38]
-            p-4
-            sm:p-6
-          "
-        >
-
-          <div
-            className="
-              grid
-              grid-cols-1
-              gap-4
-              md:grid-cols-3
-            "
-          >
-
-            {/* Orders */}
-
-            <Link
-              href="/dashboard/orders"
-              className="
-                rounded-[24px]
-                border
-                border-white/10
-                bg-[#12345C]
-                p-6
-                text-white
-                shadow-lg
-                transition
-                hover:-translate-y-1
-                hover:bg-[#17416F]
-              "
-            >
-
-              <div
-                className="
-                  flex
-                  h-16
-                  w-16
-                  items-center
-                  justify-center
-                  rounded-2xl
-                  bg-blue-500/20
-                  text-blue-300
-                "
-              >
-                <ClipboardList size={34} />
-              </div>
-
-              <h3 className="mt-6 text-xl font-black">
-                طلباتي
-              </h3>
-
-              <p className="mt-2 text-sm leading-6 text-white/60">
-                عرض جميع طلباتك الحالية والسابقة
-              </p>
-
-              <div className="mt-5 text-xl">
-                ←
-              </div>
-
-            </Link>
-
-            {/* Accounting */}
-
-            <Link
-              href="/dashboard/accounting"
-              className="
-                rounded-[24px]
-                border
-                border-white/10
-                bg-[#12345C]
-                p-6
-                text-white
-                shadow-lg
-                transition
-                hover:-translate-y-1
-                hover:bg-[#17416F]
-              "
-            >
-
-              <div
-                className="
-                  flex
-                  h-16
-                  w-16
-                  items-center
-                  justify-center
-                  rounded-2xl
-                  bg-blue-500/20
-                  text-blue-300
-                "
-              >
-                <FileText size={34} />
-              </div>
-
-              <h3 className="mt-6 text-xl font-black">
-                كشف الحساب
-              </h3>
-
-              <p className="mt-2 text-sm leading-6 text-white/60">
-                عرض تفاصيل حسابك وكافة العمليات المالية
-              </p>
-
-              <div className="mt-5 text-xl">
-                ←
-              </div>
-
-            </Link>
-
-            {/* Profile */}
-
-            <Link
-              href="/dashboard/profile"
-              className="
-                rounded-[24px]
-                border
-                border-white/10
-                bg-[#12345C]
-                p-6
-                text-white
-                shadow-lg
-                transition
-                hover:-translate-y-1
-                hover:bg-[#17416F]
-              "
-            >
-
-              <div
-                className="
-                  flex
-                  h-16
-                  w-16
-                  items-center
-                  justify-center
-                  rounded-2xl
-                  bg-purple-500/20
-                  text-purple-300
-                "
-              >
-                <UserCircle2 size={34} />
-              </div>
-
-              <h3 className="mt-6 text-xl font-black">
-                الملف الشخصي
-              </h3>
-
-              <p className="mt-2 text-sm leading-6 text-white/60">
-                إدارة بياناتك الشخصية وتحديث معلوماتك
-              </p>
-
-              <div className="mt-5 text-xl">
-                ←
-              </div>
-
-            </Link>
-
-          </div>
-
-        </section>
-
-        {/* =================================================
-            LATEST ORDERS
-        ================================================= */}
-
-        <section
-          className="
-            mb-5
-            overflow-hidden
-            rounded-[28px]
-            bg-white
-            shadow-sm
-            ring-1
-            ring-slate-100
-          "
-        >
-
-          <div
-            className="
-              flex
-              flex-col
-              gap-3
-              border-b
-              border-slate-100
-              p-5
-              sm:flex-row
-              sm:items-center
-              sm:justify-between
-              sm:p-6
-            "
-          >
-
-            <div>
-
-              <h2 className="text-xl font-black text-[#071D38]">
-                آخر الطلبات
-              </h2>
-
-              <p className="mt-1 text-sm text-slate-400">
-                أحدث الطلبات المسجلة على حسابك
-              </p>
-
-            </div>
-
-            <Link
-              href="/dashboard/orders"
-              className="
-                inline-flex
-                items-center
-                gap-2
-                text-sm
-                font-bold
-                text-blue-600
-              "
-            >
-              عرض جميع الطلبات
-              <ArrowLeft size={17} />
-            </Link>
-
-          </div>
-
-          {/* Desktop table */}
-
-          <div className="hidden overflow-x-auto md:block">
-
-            <table className="w-full">
-
-              <thead>
-
-                <tr className="bg-blue-600 text-white">
-
-                  <th className="px-6 py-4 text-right">
-                    الطلب
-                  </th>
-
-                  <th className="px-6 py-4 text-right">
-                    المنتج
-                  </th>
-
-                  <th className="px-6 py-4 text-right">
-                    القيمة
-                  </th>
-
-                  <th className="px-6 py-4 text-right">
-                    المستحق
-                  </th>
-
-                  <th className="px-6 py-4 text-right">
-                    الحالة
-                  </th>
-
-                </tr>
-
-              </thead>
-
-              <tbody>
-
-                {latestOrders.length > 0 ? (
-                  latestOrders.map((order) => (
-
-                    <tr
-                      key={order.id}
-                      className="border-b border-slate-100"
-                    >
-
-                      <td className="px-6 py-5">
-
-                        <p className="font-bold">
-                          #{order.id}
-                        </p>
-
-                        <p className="mt-1 text-xs text-slate-400">
-                          {new Date(
-                            order.created_at
-                          ).toLocaleString(
-                            "ar-JO"
-                          )}
-                        </p>
-
-                      </td>
-
-                      <td className="px-6 py-5 font-semibold">
-                        {order.producer?.full_name ??
-                          "غير محدد"}
-                      </td>
-
-                      <td className="px-6 py-5 font-bold">
-                        {Number(
-                          order.amount
-                        ).toFixed(2)} JD
-                      </td>
-
-                      <td className="px-6 py-5 font-bold text-green-600">
-                        {Number(
-                          order.captain_due ?? 0
-                        ).toFixed(2)} JD
-                      </td>
-
-                      <td className="px-6 py-5">
-
-                        <span
-                          className="
-                            rounded-full
-                            bg-orange-50
-                            px-3
-                            py-1.5
-                            text-xs
-                            font-bold
-                            text-orange-600
-                          "
-                        >
-                          غير مسدد
-                        </span>
-
-                      </td>
-
-                    </tr>
-
-                  ))
-                ) : (
-
-                  <tr>
-
-                    <td
-                      colSpan={5}
-                      className="
-                        px-6
-                        py-12
-                        text-center
-                        text-slate-400
-                      "
-                    >
-                      لا توجد طلبات حاليًا
-                    </td>
-
-                  </tr>
-
-                )}
-
-              </tbody>
-
-            </table>
-
-          </div>
-
-          {/* Mobile orders */}
-
-          <div className="divide-y divide-slate-100 md:hidden">
-
-            {latestOrders.length > 0 ? (
-              latestOrders.map((order) => (
-
-                <div
-                  key={order.id}
-                  className="p-5"
-                >
-
-                  <div className="flex items-center justify-between">
-
-                    <div>
-
-                      <p className="font-black text-[#071D38]">
-                        طلب #{order.id}
-                      </p>
-
-                      <p className="mt-1 text-xs text-slate-400">
-                        {new Date(
-                          order.created_at
-                        ).toLocaleString(
-                          "ar-JO"
-                        )}
-                      </p>
-
-                    </div>
-
-                    <span
-                      className="
-                        rounded-full
-                        bg-orange-50
-                        px-3
-                        py-1.5
-                        text-xs
-                        font-bold
-                        text-orange-600
-                      "
-                    >
-                      غير مسدد
-                    </span>
-
-                  </div>
-
-                  <div className="mt-4 grid grid-cols-2 gap-3">
-
-                    <div className="rounded-xl bg-slate-50 p-3">
-
-                      <p className="text-xs text-slate-400">
-                        القيمة
-                      </p>
-
-                      <p className="mt-1 font-black">
-                        {Number(
-                          order.amount
-                        ).toFixed(2)} JD
-                      </p>
-
-                    </div>
-
-                    <div className="rounded-xl bg-green-50 p-3">
-
-                      <p className="text-xs text-slate-400">
-                        المستحق
-                      </p>
-
-                      <p className="mt-1 font-black text-green-600">
-                        {Number(
-                          order.captain_due ?? 0
-                        ).toFixed(2)} JD
-                      </p>
-
-                    </div>
-
-                  </div>
-
-                </div>
-
-              ))
-            ) : (
-
-              <div className="p-10 text-center text-slate-400">
-                لا توجد طلبات حاليًا
-              </div>
-
-            )}
-
-          </div>
-
-        </section>
-
-        {/* =================================================
-            TRANSACTIONS + SUPPORT
-        ================================================= */}
-
-        <section
-          className="
+            relative
+            z-20
+            -mt-10
             grid
             grid-cols-1
             gap-5
-            lg:grid-cols-[1.5fr_1fr]
+            px-4
+            md:grid-cols-2
+            md:px-8
           "
         >
 
-          {/* Transactions */}
-
-          <div
-            className="
-              overflow-hidden
-              rounded-[28px]
-              bg-white
-              shadow-sm
-              ring-1
-              ring-slate-100
-            "
-          >
-
-            <div className="border-b border-slate-100 p-6">
-
-              <h2 className="text-xl font-black text-[#071D38]">
-                آخر العمليات
-              </h2>
-
-              <p className="mt-1 text-sm text-slate-400">
-                آخر الحركات على محفظتك
-              </p>
-
-            </div>
-
-            <div className="divide-y divide-slate-100">
-
-              {latestTransactions.length > 0 ? (
-                latestTransactions.map((trx) => (
-
-                  <div
-                    key={trx.id}
-                    className="
-                      flex
-                      items-center
-                      justify-between
-                      gap-4
-                      px-5
-                      py-5
-                      sm:px-6
-                    "
-                  >
-
-                    <div className="flex min-w-0 items-center gap-3">
-
-                      <div
-                        className={`
-                          flex
-                          h-11
-                          w-11
-                          shrink-0
-                          items-center
-                          justify-center
-                          rounded-full
-                          ${
-                            trx.type === "credit"
-                              ? "bg-green-50 text-green-600"
-                              : "bg-red-50 text-red-600"
-                          }
-                        `}
-                      >
-
-                        {trx.type === "credit" ? (
-                          <ArrowUpRight size={21} />
-                        ) : (
-                          <ArrowLeft size={21} />
-                        )}
-
-                      </div>
-
-                      <div className="min-w-0">
-
-                        <p className="truncate font-bold text-[#071D38]">
-                          {trx.description ??
-                            "عملية مالية"}
-                        </p>
-
-                        <p className="mt-1 text-xs text-slate-400">
-                          {new Date(
-                            trx.created_at
-                          ).toLocaleString(
-                            "ar-JO"
-                          )}
-                        </p>
-
-                      </div>
-
-                    </div>
-
-                    <p
-                      className={`
-                        shrink-0
-                        font-black
-                        ${
-                          trx.type === "credit"
-                            ? "text-green-600"
-                            : "text-red-600"
-                        }
-                      `}
-                    >
-                      {trx.type === "credit"
-                        ? "+"
-                        : "-"}
-                      {Number(
-                        trx.amount
-                      ).toFixed(2)} JD
-                    </p>
-
-                  </div>
-
-                ))
-              ) : (
-
-                <div className="px-6 py-12 text-center">
-
-                  <Wallet
-                    size={38}
-                    className="mx-auto text-slate-300"
-                  />
-
-                  <p className="mt-3 font-bold text-slate-500">
-                    لا توجد عمليات بعد
-                  </p>
-
-                </div>
-
-              )}
-
-            </div>
-
-          </div>
-
-          {/* Support */}
+          {/* المحفظة */}
 
           <div
             className="
               relative
               overflow-hidden
               rounded-[28px]
-              bg-[#071D38]
-              p-7
+              bg-gradient-to-br
+              from-[#2477E8]
+              to-[#1851A9]
+              p-6
               text-white
-              shadow-xl
+              shadow-2xl
             "
           >
 
             <div
               className="
                 absolute
-                -left-20
-                -top-20
-                h-56
-                w-56
+                -left-12
+                -top-12
+                h-40
+                w-40
                 rounded-full
-                bg-blue-500/10
+                bg-white/10
               "
             />
 
             <div className="relative">
+
+              <div className="flex items-center gap-4">
+
+                <div
+                  className="
+                    flex
+                    h-14
+                    w-14
+                    items-center
+                    justify-center
+                    rounded-full
+                    bg-white
+                    text-blue-600
+                    shadow
+                  "
+                >
+                  <Wallet size={28} />
+                </div>
+
+                <div>
+
+                  <p className="text-lg font-bold">
+                    رصيد المحفظة
+                  </p>
+
+                  <p className="text-sm text-white/70">
+                    الرصيد المتاح حالياً
+                  </p>
+
+                </div>
+
+              </div>
+
+              <div className="mt-7 flex items-end gap-2">
+
+                <span
+                  className="
+                    text-5xl
+                    font-black
+                  "
+                >
+                  {walletBalance.toFixed(2)}
+                </span>
+
+                <span className="mb-2 text-lg font-bold">
+                  JD
+                </span>
+
+              </div>
+
+              <Link
+                href="/dashboard/recharge"
+                className="
+                  mt-6
+                  inline-flex
+                  items-center
+                  gap-2
+                  rounded-xl
+                  bg-white
+                  px-5
+                  py-2.5
+                  text-sm
+                  font-black
+                  text-blue-700
+                "
+              >
+                <CreditCard size={18} />
+                شحن الرصيد
+              </Link>
+
+            </div>
+          </div>
+
+          {/* سحب المستحقات */}
+
+          <Link
+            href="/dashboard/accounting"
+            className="
+              group
+              relative
+              overflow-hidden
+              rounded-[28px]
+              bg-gradient-to-br
+              from-[#6B25D9]
+              to-[#4B16A7]
+              p-6
+              text-white
+              shadow-2xl
+              transition
+              hover:-translate-y-1
+            "
+          >
+
+            <div
+              className="
+                absolute
+                -right-12
+                -top-12
+                h-40
+                w-40
+                rounded-full
+                bg-white/10
+              "
+            />
+
+            <div className="relative flex h-full items-center justify-between">
+
+              <div>
+
+                <p className="text-2xl font-black">
+                  طلب سحب المستحقات
+                </p>
+
+                <p className="mt-2 text-sm text-white/70">
+                  حول مستحقاتك إلى حسابك البنكي
+                </p>
+
+                <div
+                  className="
+                    mt-6
+                    inline-flex
+                    items-center
+                    gap-2
+                    rounded-xl
+                    bg-white/15
+                    px-5
+                    py-3
+                    font-bold
+                  "
+                >
+                  طلب سحب
+                  <ArrowLeft size={18} />
+                </div>
+
+              </div>
+
+              <div
+                className="
+                  flex
+                  h-20
+                  w-20
+                  shrink-0
+                  items-center
+                  justify-center
+                  rounded-3xl
+                  bg-white/15
+                "
+              >
+                <Landmark size={42} />
+              </div>
+
+            </div>
+
+          </Link>
+
+        </section>
+
+        {/* =====================================================
+            6 STAT CARDS
+        ===================================================== */}
+
+        <section
+          className="
+            grid
+            grid-cols-1
+            gap-4
+            px-4
+            pt-6
+            sm:grid-cols-2
+            lg:grid-cols-3
+            md:px-8
+          "
+        >
+
+          {/* الأرباح */}
+
+          <StatCard
+            title="إجمالي الأرباح"
+            value={`${totalEarnings.toFixed(3)} JD`}
+            subtitle="هذا الأسبوع"
+            icon={<TrendingUp size={28} />}
+            iconClass="bg-green-100 text-green-600"
+          />
+
+          {/* المستحقات */}
+
+          <StatCard
+            title="المستحقات غير مسددة"
+            value={`${unpaidBalance.toFixed(3)} JD`}
+            subtitle="متبقي الدفع"
+            icon={<CircleDollarSign size={28} />}
+            iconClass="bg-orange-100 text-orange-600"
+          />
+
+          {/* الطلبات */}
+
+          <StatCard
+            title="عدد الطلبات"
+            value={String(totalOrders)}
+            subtitle="هذا الأسبوع"
+            icon={<ClipboardList size={28} />}
+            iconClass="bg-blue-100 text-blue-600"
+          />
+
+          {/* الرصيد */}
+
+          <StatCard
+            title="رصيد المحفظة"
+            value={`${walletBalance.toFixed(3)} JD`}
+            subtitle="متاح للسحب"
+            icon={<Wallet size={28} />}
+            iconClass="bg-blue-100 text-blue-600"
+          />
+
+          {/* شحن */}
+
+          <Link
+            href="/dashboard/recharge"
+            className="
+              group
+              rounded-[22px]
+              bg-white
+              p-5
+              shadow-sm
+              ring-1
+              ring-slate-200
+              transition
+              hover:-translate-y-1
+              hover:shadow-lg
+            "
+          >
+
+            <div className="flex items-center gap-4">
+
+              <div
+                className="
+                  flex
+                  h-14
+                  w-14
+                  items-center
+                  justify-center
+                  rounded-2xl
+                  bg-purple-100
+                  text-purple-600
+                "
+              >
+                <CreditCard size={28} />
+              </div>
+
+              <div>
+
+                <p className="text-lg font-black text-[#12233F]">
+                  شحن المحفظة
+                </p>
+
+                <p className="mt-1 text-sm text-slate-400">
+                  قم بشحن محفظتك للبدء باستقبال الطلبات
+                </p>
+
+              </div>
+
+            </div>
+
+          </Link>
+
+          {/* السحب */}
+
+          <Link
+            href="/dashboard/accounting"
+            className="
+              group
+              rounded-[22px]
+              bg-white
+              p-5
+              shadow-sm
+              ring-1
+              ring-slate-200
+              transition
+              hover:-translate-y-1
+              hover:shadow-lg
+            "
+          >
+
+            <div className="flex items-center gap-4">
+
+              <div
+                className="
+                  flex
+                  h-14
+                  w-14
+                  items-center
+                  justify-center
+                  rounded-2xl
+                  bg-green-100
+                  text-green-600
+                "
+              >
+                <Building2 size={28} />
+              </div>
+
+              <div>
+
+                <p className="text-lg font-black text-[#12233F]">
+                  طلب سحب المستحقات
+                </p>
+
+                <p className="mt-1 text-sm text-slate-400">
+                  حول مستحقاتك إلى حسابك البنكي
+                </p>
+
+              </div>
+
+            </div>
+
+          </Link>
+
+        </section>
+
+        {/* =====================================================
+            MAIN THREE CARDS
+        ===================================================== */}
+
+        <section
+          className="
+            mx-4
+            mt-6
+            grid
+            grid-cols-1
+            gap-5
+            rounded-[28px]
+            bg-[#08264B]
+            p-5
+            md:mx-8
+            md:grid-cols-3
+            md:p-7
+          "
+        >
+
+          {/* طلباتي */}
+
+          <DashboardAction
+            href="/dashboard/orders"
+            title="طلباتي"
+            description="عرض جميع طلباتك الحالية والسابقة"
+            icon={<ClipboardList size={38} />}
+          />
+
+          {/* كشف الحساب */}
+
+          <DashboardAction
+            href="/dashboard/accounting"
+            title="كشف الحساب"
+            description="عرض تفاصيل حسابك وكافة العمليات المالية"
+            icon={<FileText size={38} />}
+          />
+
+          {/* الملف الشخصي */}
+
+          <DashboardAction
+            href="/dashboard/profile"
+            title="الملف الشخصي"
+            description="إدارة بياناتك الشخصية وتحديث معلوماتك"
+            icon={<UserCircle size={38} />}
+          />
+
+        </section>
+
+        {/* =====================================================
+            SUPPORT
+        ===================================================== */}
+
+        <section
+          className="
+            mx-4
+            mt-6
+            overflow-hidden
+            rounded-[28px]
+            bg-[#061B35]
+            p-7
+            text-white
+            md:mx-8
+          "
+        >
+
+          <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+
+            <div className="flex items-center gap-4">
 
               <div
                 className="
@@ -1696,67 +734,220 @@ export default async function DashboardPage() {
                   justify-center
                   rounded-2xl
                   bg-[#F5B82E]
-                  text-[#071D38]
+                  text-[#061B35]
                 "
               >
-                <Headphones size={27} />
+                <Headphones size={28} />
               </div>
 
-              <h2 className="mt-6 text-2xl font-black">
-                تحتاج إلى مساعدة؟
-              </h2>
+              <div>
 
-              <p className="mt-3 text-sm leading-7 text-white/60">
-                إذا واجهت أي مشكلة في الطلبات أو الرصيد،
-                تواصل مع الإدارة وسنساعدك.
-              </p>
+                <h2 className="text-xl font-black">
+                  تحتاج إلى مساعدة؟
+                </h2>
 
-              <button
-                type="button"
-                className="
-                  mt-7
-                  inline-flex
-                  items-center
-                  gap-2
-                  rounded-xl
-                  bg-white
-                  px-5
-                  py-3
-                  text-sm
-                  font-black
-                  text-[#071D38]
-                "
-              >
-                الدعم الفني
-                <ArrowLeft size={17} />
-              </button>
+                <p className="mt-1 text-sm text-white/60">
+                  تواصل مع الإدارة لأي مشكلة في الطلبات أو الرصيد.
+                </p>
+
+              </div>
 
             </div>
+
+            <button
+              type="button"
+              className="
+                rounded-xl
+                bg-white
+                px-6
+                py-3
+                font-black
+                text-[#061B35]
+              "
+            >
+              الدعم الفني
+            </button>
 
           </div>
 
         </section>
 
-        {/* =================================================
+        {/* =====================================================
             FOOTER
-        ================================================= */}
+        ===================================================== */}
 
         <footer
           className="
-            mt-6
-            rounded-2xl
-            bg-[#071D38]
-            px-5
-            py-5
-            text-center
+            mt-8
+            flex
+            flex-col
+            items-center
+            justify-between
+            gap-3
+            border-t
+            border-slate-200
+            px-6
+            py-6
             text-sm
-            text-white/60
+            text-slate-400
+            md:flex-row
+            md:px-8
           "
         >
-          Dr.Drive وصلني الآن — بوابة الكباتن
+
+          <div className="flex items-center gap-3">
+
+            <img
+              src="/logo.png"
+              alt="Dr.Drive"
+              className="h-10 w-auto object-contain"
+            />
+
+            <span>
+              Dr.Drive وصلني الآن
+            </span>
+
+          </div>
+
+          <span>
+            © 2026 Dr.Drive — جميع الحقوق محفوظة
+          </span>
+
         </footer>
 
       </div>
     </main>
+  );
+}
+
+
+/* ============================================================
+   STAT CARD
+============================================================ */
+
+function StatCard({
+  title,
+  value,
+  subtitle,
+  icon,
+  iconClass,
+}: {
+  title: string;
+  value: string;
+  subtitle: string;
+  icon: React.ReactNode;
+  iconClass: string;
+}) {
+  return (
+    <div
+      className="
+        rounded-[22px]
+        bg-white
+        p-5
+        shadow-sm
+        ring-1
+        ring-slate-200
+        transition
+        hover:-translate-y-1
+        hover:shadow-lg
+      "
+    >
+
+      <div className="flex items-center justify-between">
+
+        <div
+          className={`
+            flex
+            h-14
+            w-14
+            items-center
+            justify-center
+            rounded-2xl
+            ${iconClass}
+          `}
+        >
+          {icon}
+        </div>
+
+        <span className="text-xs font-bold text-slate-400">
+          {title}
+        </span>
+
+      </div>
+
+      <p className="mt-5 text-3xl font-black text-[#12233F]">
+        {value}
+      </p>
+
+      <p className="mt-1 text-xs text-slate-400">
+        {subtitle}
+      </p>
+
+    </div>
+  );
+}
+
+
+/* ============================================================
+   DASHBOARD ACTION
+============================================================ */
+
+function DashboardAction({
+  href,
+  title,
+  description,
+  icon,
+}: {
+  href: string;
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className="
+        group
+        rounded-[22px]
+        border
+        border-white/10
+        bg-[#123664]
+        p-6
+        text-white
+        transition
+        hover:-translate-y-1
+        hover:bg-[#174273]
+      "
+    >
+
+      <div
+        className="
+          flex
+          h-16
+          w-16
+          items-center
+          justify-center
+          rounded-2xl
+          bg-blue-500/20
+          text-blue-300
+        "
+      >
+        {icon}
+      </div>
+
+      <h3 className="mt-5 text-xl font-black">
+        {title}
+      </h3>
+
+      <p className="mt-2 text-sm leading-7 text-white/60">
+        {description}
+      </p>
+
+      <div className="mt-5 flex items-center gap-2 text-sm font-bold text-[#F5B82E]">
+        فتح
+        <ArrowLeft size={17} />
+      </div>
+
+    </Link>
   );
 }

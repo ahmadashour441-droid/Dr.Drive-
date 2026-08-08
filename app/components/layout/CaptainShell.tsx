@@ -1,7 +1,7 @@
 "use client";
 
 import { ReactNode, useState } from "react";
-import CaptainHeader from "./CaptainHeader";
+import Header from "./Header";
 import CaptainSidebar from "./CaptainSidebar";
 
 interface Props {
@@ -18,40 +18,20 @@ export default function CaptainShell({
   return (
     <div
       dir="rtl"
-      className="
-        flex
-        min-h-screen
-        w-full
-        overflow-x-hidden
-        bg-[#F4F7FB]
-      "
+      className="min-h-screen bg-[#F3F6FA]"
     >
-      {/* DESKTOP SIDEBAR */}
 
-      <aside
-        className="
-          hidden
-          h-screen
-          w-[270px]
-          shrink-0
-          lg:block
-        "
-      >
-        <div className="sticky top-0 h-screen">
-          <CaptainSidebar />
-        </div>
-      </aside>
-
-      {/* MOBILE OVERLAY */}
+      {/* Mobile menu */}
 
       {sidebarOpen && (
         <>
+
           <div
             className="
               fixed
               inset-0
               z-40
-              bg-slate-950/50
+              bg-black/50
               backdrop-blur-sm
               lg:hidden
             "
@@ -65,9 +45,8 @@ export default function CaptainShell({
               top-0
               z-50
               h-screen
-              w-[280px]
+              w-[290px]
               max-w-[85vw]
-              shadow-2xl
               lg:hidden
             "
           >
@@ -77,35 +56,27 @@ export default function CaptainShell({
               }
             />
           </aside>
+
         </>
       )}
 
-      {/* MAIN */}
+      {/* Header */}
 
-      <div className="flex min-w-0 flex-1 flex-col">
+      <Header
+        title="لوحة تحكم الكابتن"
+        subtitle="مرحباً بك"
+        fullName={fullName}
+        onMenuClick={() =>
+          setSidebarOpen((prev) => !prev)
+        }
+      />
 
-        <CaptainHeader
-          fullName={fullName}
-          onMenuClick={() =>
-            setSidebarOpen((prev) => !prev)
-          }
-        />
+      {/* Page */}
 
-        <main
-          className="
-            min-w-0
-            flex-1
-            overflow-x-hidden
-            p-3
-            sm:p-4
-            md:p-6
-            lg:p-8
-          "
-        >
-          {children}
-        </main>
+      <main className="w-full">
+        {children}
+      </main>
 
-      </div>
     </div>
   );
 }

@@ -1,6 +1,10 @@
 "use client";
 
-import { Bell, Menu, UserCircle2 } from "lucide-react";
+import {
+  Bell,
+  Menu,
+  UserCircle2,
+} from "lucide-react";
 
 interface HeaderProps {
   title: string;
@@ -22,46 +26,60 @@ export default function Header({
         sticky
         top-0
         z-30
-        flex
-        h-[86px]
-        w-full
-        items-center
-        justify-between
+        h-[82px]
         border-b
         border-slate-100
         bg-white
-        px-4
-        md:px-6
-        lg:px-8
       "
     >
-      {/* اليمين — العنوان + القائمة */}
 
-      <div className="flex items-center gap-3">
+      <div
+        className="
+          mx-auto
+          flex
+          h-full
+          w-full
+          max-w-[1500px]
+          items-center
+          justify-between
+          px-4
+          md:px-8
+        "
+      >
 
-        <button
-          type="button"
-          onClick={onMenuClick}
-          className="
-            flex
-            h-14
-            w-14
-            items-center
-            justify-center
-            rounded-2xl
-            bg-slate-50
-            text-[#061B35]
-            transition
-            hover:bg-slate-100
-            lg:hidden
-          "
-          aria-label="فتح القائمة"
-        >
-          <Menu size={28} strokeWidth={2} />
-        </button>
+        {/* Logo */}
 
-        <div className="hidden sm:block">
-          <h1 className="text-xl font-black text-[#061B35] md:text-2xl">
+        <div className="flex items-center gap-3">
+
+          <img
+            src="/logo.png"
+            alt="Dr.Drive"
+            className="
+              h-12
+              w-auto
+              object-contain
+            "
+          />
+
+          <div className="hidden md:block">
+
+            <p className="text-sm font-black text-[#061B35]">
+              Dr.Drive
+            </p>
+
+            <p className="text-xs text-[#F5B82E]">
+              وصلني الآن
+            </p>
+
+          </div>
+
+        </div>
+
+        {/* Title */}
+
+        <div className="hidden text-center md:block">
+
+          <h1 className="text-xl font-black text-[#061B35]">
             {title}
           </h1>
 
@@ -70,87 +88,102 @@ export default function Header({
               {subtitle}
             </p>
           )}
+
         </div>
 
-      </div>
+        {/* User */}
 
-      {/* الوسط — فارغ على الموبايل */}
+        <div className="flex items-center gap-2 md:gap-4">
 
-      <div className="hidden flex-1 md:block" />
+          {/* Bell */}
 
-      {/* اليسار — المستخدم + الإشعارات */}
-
-      <div className="flex items-center gap-3">
-
-        {/* الإشعارات */}
-
-        <button
-          type="button"
-          className="
-            relative
-            flex
-            h-14
-            w-14
-            items-center
-            justify-center
-            rounded-2xl
-            bg-slate-50
-            text-[#061B35]
-            transition
-            hover:bg-slate-100
-          "
-          aria-label="الإشعارات"
-        >
-          <Bell size={26} strokeWidth={1.8} />
-
-          <span
+          <button
+            type="button"
             className="
-              absolute
-              right-3
-              top-3
-              h-2.5
-              w-2.5
-              rounded-full
-              bg-red-500
-              ring-2
-              ring-white
+              relative
+              flex
+              h-11
+              w-11
+              items-center
+              justify-center
+              rounded-2xl
+              bg-slate-50
+              text-[#061B35]
             "
-          />
-        </button>
+          >
 
-        {/* المستخدم */}
+            <Bell size={23} />
 
-        <div className="flex items-center gap-3">
+            <span
+              className="
+                absolute
+                right-2
+                top-2
+                h-2.5
+                w-2.5
+                rounded-full
+                bg-[#F5B82E]
+                ring-2
+                ring-white
+              "
+            />
+
+          </button>
+
+          {/* Name */}
 
           <div className="hidden text-right sm:block">
 
             <p className="text-sm font-black text-[#061B35]">
-              {fullName ?? "الكابتن"}
+              {fullName}
             </p>
 
-            <p className="mt-0.5 text-xs text-slate-400">
-              كابتن Dr.Drive
+            <p className="text-xs text-slate-400">
+              كابتن
             </p>
 
           </div>
+
+          {/* Avatar */}
 
           <div
             className="
               flex
-              h-14
-              w-14
+              h-12
+              w-12
               items-center
               justify-center
+              overflow-hidden
               rounded-full
-              bg-blue-50
+              bg-slate-100
               text-blue-600
             "
           >
             <UserCircle2
-              size={42}
+              size={40}
               strokeWidth={1.6}
             />
           </div>
+
+          {/* Mobile Menu */}
+
+          <button
+            type="button"
+            onClick={onMenuClick}
+            className="
+              flex
+              h-12
+              w-12
+              items-center
+              justify-center
+              rounded-2xl
+              bg-slate-50
+              text-[#061B35]
+              lg:hidden
+            "
+          >
+            <Menu size={28} />
+          </button>
 
         </div>
 
