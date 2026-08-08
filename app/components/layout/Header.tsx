@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  Bell,
-  Menu,
-  Search,
-  UserCircle2,
-} from "lucide-react";
+import { Bell, Menu, UserCircle2 } from "lucide-react";
 
 interface HeaderProps {
   title: string;
@@ -28,153 +23,136 @@ export default function Header({
         top-0
         z-30
         flex
-        h-[82px]
+        h-[86px]
+        w-full
         items-center
         justify-between
         border-b
-        border-slate-200
+        border-slate-100
         bg-white
         px-4
-        shadow-sm
-        md:px-8
+        md:px-6
+        lg:px-8
       "
     >
-      {/* يمين الهيدر */}
+      {/* اليمين — العنوان + القائمة */}
 
       <div className="flex items-center gap-3">
-
-        <div className="hidden text-right sm:block">
-          <p className="text-lg font-bold text-slate-800">
-            {fullName ?? "الكابتن"}
-          </p>
-
-          <p className="text-xs text-slate-500">
-            Dr.Drive وصلني الآن
-          </p>
-        </div>
-
-        <div
-          className="
-            flex
-            h-12
-            w-12
-            items-center
-            justify-center
-            rounded-full
-            border-2
-            border-blue-600
-            bg-white
-          "
-        >
-          <UserCircle2
-            size={34}
-            className="text-blue-600"
-          />
-        </div>
-
-      </div>
-
-      {/* البحث */}
-
-      <div className="hidden md:block">
-
-        <div
-          className="
-            relative
-            flex
-            h-11
-            w-[300px]
-            items-center
-            rounded-full
-            border
-            border-slate-300
-            bg-slate-50
-          "
-        >
-
-          <Search
-            size={18}
-            className="absolute right-4 text-slate-400"
-          />
-
-          <input
-            type="text"
-            placeholder="بحث..."
-            className="
-              h-full
-              w-full
-              rounded-full
-              bg-transparent
-              px-11
-              text-sm
-              outline-none
-            "
-          />
-
-        </div>
-
-      </div>
-
-      {/* اليسار */}
-
-      <div className="flex items-center gap-2">
-
-        <button
-          type="button"
-          className="
-            relative
-            flex
-            h-11
-            w-11
-            items-center
-            justify-center
-            rounded-full
-            transition
-            hover:bg-slate-100
-          "
-        >
-
-          <Bell
-            size={25}
-            className="text-slate-700"
-          />
-
-          <span
-            className="
-              absolute
-              right-2
-              top-2
-              h-2.5
-              w-2.5
-              rounded-full
-              bg-yellow-400
-            "
-          />
-
-        </button>
 
         <button
           type="button"
           onClick={onMenuClick}
           className="
             flex
-            h-11
-            w-11
+            h-14
+            w-14
             items-center
             justify-center
-            rounded-xl
+            rounded-2xl
+            bg-slate-50
+            text-[#061B35]
             transition
             hover:bg-slate-100
             lg:hidden
           "
+          aria-label="فتح القائمة"
         >
-
-          <Menu
-            size={28}
-            className="text-slate-700"
-          />
-
+          <Menu size={28} strokeWidth={2} />
         </button>
+
+        <div className="hidden sm:block">
+          <h1 className="text-xl font-black text-[#061B35] md:text-2xl">
+            {title}
+          </h1>
+
+          {subtitle && (
+            <p className="mt-1 text-xs text-slate-400">
+              {subtitle}
+            </p>
+          )}
+        </div>
+
+      </div>
+
+      {/* الوسط — فارغ على الموبايل */}
+
+      <div className="hidden flex-1 md:block" />
+
+      {/* اليسار — المستخدم + الإشعارات */}
+
+      <div className="flex items-center gap-3">
+
+        {/* الإشعارات */}
+
+        <button
+          type="button"
+          className="
+            relative
+            flex
+            h-14
+            w-14
+            items-center
+            justify-center
+            rounded-2xl
+            bg-slate-50
+            text-[#061B35]
+            transition
+            hover:bg-slate-100
+          "
+          aria-label="الإشعارات"
+        >
+          <Bell size={26} strokeWidth={1.8} />
+
+          <span
+            className="
+              absolute
+              right-3
+              top-3
+              h-2.5
+              w-2.5
+              rounded-full
+              bg-red-500
+              ring-2
+              ring-white
+            "
+          />
+        </button>
+
+        {/* المستخدم */}
+
+        <div className="flex items-center gap-3">
+
+          <div className="hidden text-right sm:block">
+
+            <p className="text-sm font-black text-[#061B35]">
+              {fullName ?? "الكابتن"}
+            </p>
+
+            <p className="mt-0.5 text-xs text-slate-400">
+              كابتن Dr.Drive
+            </p>
+
+          </div>
+
+          <div
+            className="
+              flex
+              h-14
+              w-14
+              items-center
+              justify-center
+              rounded-full
+              bg-blue-50
+              text-blue-600
+            "
+          >
+            <UserCircle2
+              size={42}
+              strokeWidth={1.6}
+            />
+          </div>
+
+        </div>
 
       </div>
 
