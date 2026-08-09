@@ -148,7 +148,13 @@ export async function POST(req: NextRequest) {
      */
     let floorApplied = false;
 
-    if (captain.status === true) {
+    const captainIsActive =
+      captain.status === true ||
+      captain.status === "true" ||
+      captain.status === 1 ||
+      captain.status === "1";
+
+    if (captainIsActive) {
       const { data: floorRows, error: floorError } =
         await supabase
           .from("BalanceTransactions")
@@ -280,15 +286,24 @@ export async function POST(req: NextRequest) {
      * 3) تحديث محفظة الكابتن من السيرفر.
      * يسمح بالرصيد السالب.
      */
-    const { error: walletError } =
-      await supabase
-        .from("Users")
-        .update({
-          wallet_balance: newWalletBalance,
-        })
-        .eq("id", captainId);
+    const {
+      data: updatedCaptain,
+      error: walletError,
+    } = await supabase
+      .from("Users")
+      .update({
+        wallet_balance: newWalletBalance,
+      })
+      .eq("id", captainId)
+      .select("id, wallet_balance")
+      .single();
 
-    if (walletError) {
+    if (
+      walletError ||
+      !updatedCaptain ||
+      Number(updatedCaptain.wallet_balance) !==
+        newWalletBalance
+    ) {
       await supabase
         .from("BalanceTransactions")
         .delete()
@@ -308,7 +323,11 @@ export async function POST(req: NextRequest) {
         .eq("id", order.id);
 
       return NextResponse.json(
-        { error: walletError.message },
+        {
+          error:
+            walletError?.message ??
+            "تم إنشاء الطلب لكن تعذر تحديث رصيد محفظة الكابتن",
+        },
         { status: 500 }
       );
     }
@@ -326,7 +345,8 @@ export async function POST(req: NextRequest) {
       netProducerCommission,
       floorApplied,
       deduction,
-      walletBalance: newWalletBalance,
+      walletBalance: Number(updatedCaptain.wallet_balance),
+      captainIsActive,
       weekStart: weekStartText,
       weekEnd: weekEndText,
     });
