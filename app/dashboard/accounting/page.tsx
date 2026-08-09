@@ -33,8 +33,19 @@ export default async function CaptainAccountingPage() {
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
+  /* =========================
+     FINANCIAL TRANSACTIONS
+     ========================= */
+
+  const { data: balanceTransactions } = await supabase
+    .from("BalanceTransactions")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false });
+
   const allOrders = orders ?? [];
   const allWithdrawals = withdrawalRequests ?? [];
+  const allTransactions = balanceTransactions ?? [];
 
   /* =========================
      STATISTICS
@@ -42,26 +53,20 @@ export default async function CaptainAccountingPage() {
 
   const totalOrders = allOrders.length;
 
-  const totalAmount = allOrders.reduce(
+  /*
+   * إجمالي الأرباح = قيمة الطلبات نفسها.
+   * الشحن والأرضية والخصومات لا تدخل في الأرباح.
+   */
+  const totalEarnings = allOrders.reduce(
     (sum: number, order: any) =>
       sum + Number(order.amount ?? 0),
     0
   );
 
-  const totalCaptainDue = allOrders.reduce(
-    (sum: number, order: any) =>
-      sum + Number(order.captain_due ?? 0),
-    0
-  );
-
-  const unpaidOrders = allOrders.filter(
-    (order: any) => !order.is_settled
-  ).length;
-
-  /* =========================
-     AVAILABLE FOR WITHDRAWAL
-  ========================= */
-
+  /*
+   * المستحقات غير المسددة = مستحق الكابتن للطلبات
+   * التي لم تتم تسويتها بعد.
+   */
   const unpaidCaptainDue = allOrders
     .filter((order: any) => !order.is_settled)
     .reduce(
@@ -69,6 +74,23 @@ export default async function CaptainAccountingPage() {
         sum + Number(order.captain_due ?? 0),
       0
     );
+
+  const unpaidOrders = allOrders.filter(
+    (order: any) => !order.is_settled
+  ).length;
+
+  /*
+   * الرصيد الحالي للمحفظة.
+   * يبقى كما هو حتى بعد إغلاق الأسبوع.
+   */
+  const { data: currentUser } = await supabase
+    .from("Users")
+    .select("wallet_balance")
+    .eq("id", user.id)
+    .single();
+
+  const walletBalance =
+    Number(currentUser?.wallet_balance ?? 0);
 
   const pendingWithdrawals = allWithdrawals
     .filter((request: any) => request.status === "pending")
@@ -202,31 +224,42 @@ export default async function CaptainAccountingPage() {
 
           <div className="rounded-xl bg-white p-6 shadow">
             <p className="text-gray-500">
-              إجمالي قيمة الطلبات
+              إجمالي الأرباح
             </p>
 
-            <h2 className="mt-3 text-3xl font-bold">
-              {totalAmount.toFixed(2)} JD
+            <h2 className="mt-3 text-3xl font-bold text-blue-600">
+              {totalEarnings.toFixed(2)} JD
             </h2>
           </div>
 
           <div className="rounded-xl bg-white p-6 shadow">
             <p className="text-gray-500">
-              مستحقاتك
-            </p>
-
-            <h2 className="mt-3 text-3xl font-bold text-green-600">
-              {totalCaptainDue.toFixed(2)} JD
-            </h2>
-          </div>
-
-          <div className="rounded-xl bg-white p-6 shadow">
-            <p className="text-gray-500">
-              غير مسدد
+              المستحقات غير المسددة
             </p>
 
             <h2 className="mt-3 text-3xl font-bold text-red-600">
-              {unpaidOrders}
+              {unpaidCaptainDue.toFixed(2)} JD
+            </h2>
+
+            <p className="mt-2 text-sm text-gray-400">
+              {unpaidOrders} طلب غير مسدد
+            </p>
+          </div>
+
+          <div className="rounded-xl bg-white p-6 shadow">
+            <p className="text-gray-500">
+              رصيد المحفظة
+            </p>
+
+            <h2
+              className={`mt-3 text-3xl font-bold ${
+                walletBalance >= 0
+                  ? "text-green-600"
+                  : "text-red-600"
+              }`}
+              dir="ltr"
+            >
+              {walletBalance.toFixed(3)} JD
             </h2>
           </div>
 
@@ -420,92 +453,255 @@ export default async function CaptainAccountingPage() {
 
         <div className="mt-8 overflow-hidden rounded-xl bg-white shadow">
 
-          <table className="min-w-[1300px] w-full">
+          <div className="border-b p-5">
+            <h2 className="text-xl font-black">
+              الطلبات
+            </h2>
 
-            <thead className="bg-slate-100">
+            <p className="mt-1 text-sm text-gray-500">
+              جميع الطلبات الحالية والسابقة. إغلاق الأسبوع لا يحذف الطلبات.
+            </p>
+          </div>
 
-              <tr>
+          <div className="overflow-x-auto">
 
-                <th className="p-4 text-right">
-                  #
-                </th>
+            <table className="min-w-[1300px] w-full">
 
-                <th className="p-4 text-right">
-                  النوع
-                </th>
+              <thead className="bg-slate-100">
 
-                <th className="p-4 text-right">
-                  القيمة
-                </th>
+                <tr>
 
-                <th className="p-4 text-right">
-                  المستحق
-                </th>
+                  <th className="p-4 text-right">
+                    #
+                  </th>
 
-                <th className="p-4 text-right">
-                  الحالة
-                </th>
+                  <th className="p-4 text-right">
+                    النوع
+                  </th>
 
-                <th className="p-4 text-right">
-                  الأسبوع
-                </th>
+                  <th className="p-4 text-right">
+                    قيمة الطلب
+                  </th>
 
-              </tr>
+                  <th className="p-4 text-right">
+                    مستحق الكابتن
+                  </th>
 
-            </thead>
+                  <th className="p-4 text-right">
+                    الحالة
+                  </th>
 
-            <tbody>
+                  <th className="p-4 text-right">
+                    الأسبوع
+                  </th>
 
-              {allOrders.map(
-                (order: any) => (
+                </tr>
 
-                  <tr
-                    key={order.id}
-                    className="border-t"
-                  >
+              </thead>
 
-                    <td className="p-4">
-                      {order.id}
+              <tbody>
+
+                {allOrders.map(
+                  (order: any) => (
+
+                    <tr
+                      key={order.id}
+                      className="border-t"
+                    >
+
+                      <td className="p-4">
+                        {order.id}
+                      </td>
+
+                      <td className="p-4">
+                        {order.order_type}
+                      </td>
+
+                      <td className="p-4 font-bold">
+                        {Number(order.amount ?? 0).toFixed(2)} JD
+                      </td>
+
+                      <td className="p-4 font-semibold text-green-600">
+                        {Number(order.captain_due ?? 0).toFixed(2)} JD
+                      </td>
+
+                      <td className="p-4">
+
+                        {order.is_settled ? (
+                          <span className="font-bold text-green-600">
+                            تم التسديد
+                          </span>
+                        ) : (
+                          <span className="font-bold text-red-600">
+                            غير مسدد
+                          </span>
+                        )}
+
+                      </td>
+
+                      <td className="p-4">
+                        {order.week_start}
+                      </td>
+
+                    </tr>
+
+                  )
+                )}
+
+                {allOrders.length === 0 && (
+                  <tr>
+                    <td
+                      colSpan={6}
+                      className="p-10 text-center text-gray-500"
+                    >
+                      لا توجد طلبات.
                     </td>
-
-                    <td className="p-4">
-                      {order.order_type}
-                    </td>
-
-                    <td className="p-4">
-                      {order.amount} JD
-                    </td>
-
-                    <td className="p-4 font-semibold text-green-600">
-                      {order.captain_due} JD
-                    </td>
-
-                    <td className="p-4">
-
-                      {order.is_settled ? (
-                        <span className="text-green-600">
-                          تم التسديد
-                        </span>
-                      ) : (
-                        <span className="text-red-600">
-                          غير مسدد
-                        </span>
-                      )}
-
-                    </td>
-
-                    <td className="p-4">
-                      {order.week_start}
-                    </td>
-
                   </tr>
+                )}
 
-                )
-              )}
+              </tbody>
 
-            </tbody>
+            </table>
 
-          </table>
+          </div>
+
+        </div>
+
+        {/* =========================
+            FINANCIAL TRANSACTIONS
+        ========================= */}
+
+        <div className="mt-8 overflow-hidden rounded-xl bg-white shadow">
+
+          <div className="border-b p-5">
+            <h2 className="text-xl font-black">
+              الحركات المالية
+            </h2>
+
+            <p className="mt-1 text-sm text-gray-500">
+              هنا تظهر الأرضية الأسبوعية والخصومات والحركات المالية التي تمت على محفظتك.
+            </p>
+          </div>
+
+          <div className="overflow-x-auto">
+
+            <table className="min-w-[1100px] w-full">
+
+              <thead className="bg-slate-100">
+
+                <tr>
+
+                  <th className="p-4 text-right">
+                    التاريخ
+                  </th>
+
+                  <th className="p-4 text-right">
+                    الوصف
+                  </th>
+
+                  <th className="p-4 text-right">
+                    النوع
+                  </th>
+
+                  <th className="p-4 text-right">
+                    القيمة
+                  </th>
+
+                  <th className="p-4 text-right">
+                    الأسبوع
+                  </th>
+
+                  <th className="p-4 text-right">
+                    الحالة
+                  </th>
+
+                </tr>
+
+              </thead>
+
+              <tbody>
+
+                {allTransactions.map(
+                  (trx: any) => (
+
+                    <tr
+                      key={trx.id}
+                      className="border-t"
+                    >
+
+                      <td className="p-4 text-gray-500">
+                        {trx.created_at
+                          ? new Intl.DateTimeFormat(
+                              "ar-JO",
+                              {
+                                timeZone: "Asia/Amman",
+                                dateStyle: "medium",
+                                timeStyle: "short",
+                              }
+                            ).format(
+                              new Date(trx.created_at)
+                            )
+                          : "-"}
+                      </td>
+
+                      <td className="p-4 font-semibold">
+                        {trx.description ?? "-"}
+                      </td>
+
+                      <td className="p-4">
+                        {trx.type === "debit" ? (
+                          <span className="font-bold text-red-600">
+                            خصم
+                          </span>
+                        ) : (
+                          <span className="font-bold text-green-600">
+                            إضافة
+                          </span>
+                        )}
+                      </td>
+
+                      <td className="p-4 font-black">
+                        {trx.type === "debit" ? "-" : "+"}
+                        {Number(trx.amount ?? 0).toFixed(3)} JD
+                      </td>
+
+                      <td className="p-4">
+                        {trx.week_start ?? "-"}
+                      </td>
+
+                      <td className="p-4">
+                        {trx.is_settled ? (
+                          <span className="font-bold text-green-600">
+                            مغلق
+                          </span>
+                        ) : (
+                          <span className="font-bold text-yellow-600">
+                            حالي
+                          </span>
+                        )}
+                      </td>
+
+                    </tr>
+
+                  )
+                )}
+
+                {allTransactions.length === 0 && (
+                  <tr>
+                    <td
+                      colSpan={6}
+                      className="p-10 text-center text-gray-500"
+                    >
+                      لا توجد حركات مالية.
+                    </td>
+                  </tr>
+                )}
+
+              </tbody>
+
+            </table>
+
+          </div>
 
         </div>
 
