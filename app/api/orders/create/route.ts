@@ -66,6 +66,9 @@ function getJordanWeek() {
 }
 
 export async function POST(req: NextRequest) {
+  let createdOrderId: number | null = null;
+  let insertedTransactionIds: number[] = [];
+
   try {
     const body = await req.json();
 
@@ -142,9 +145,7 @@ export async function POST(req: NextRequest) {
       error: producerError,
     } = await supabase
       .from("Users")
-      .select(
-        "id, full_name, is_producer"
-      )
+      .select("id, full_name, is_producer")
       .eq("id", producerId)
       .single();
 
@@ -195,8 +196,7 @@ export async function POST(req: NextRequest) {
 
     /*
      * الأرضية:
-     * للكابتن الفعّال فقط، ومرة واحدة فقط
-     * في الأسبوع الحالي.
+     * للكابتن الفعّال فقط، ومرة واحدة في الأسبوع.
      */
     const captainIsActive =
       captain.status === true ||
@@ -231,8 +231,7 @@ export async function POST(req: NextRequest) {
       if (floorError) {
         return NextResponse.json(
           {
-            error:
-              floorError.message,
+            error: floorError.message,
           },
           { status: 500 }
         );
@@ -252,17 +251,14 @@ export async function POST(req: NextRequest) {
       ).toFixed(2)
     );
 
-    const currentWallet = Number(
+    /*
+     * نحتفظ بالرصيد الحالي فقط للعرض والتدقيق.
+     * الخصم الفعلي لا يتم حسابه من هذه القيمة.
+     * الخصم الفعلي يتم بواسطة RPC داخل قاعدة البيانات.
+     */
+    const walletBefore = Number(
       captain.wallet_balance ?? 0
     );
-
-    const newWalletBalance =
-      Number(
-        (
-          currentWallet -
-          deduction
-        ).toFixed(3)
-      );
 
     /*
      * 1) إنشاء الطلب.
@@ -320,6 +316,8 @@ export async function POST(req: NextRequest) {
         { status: 500 }
       );
     }
+
+    createdOrderId = Number(order.id);
 
     /*
      * 2) تسجيل الحركات.
@@ -398,74 +396,97 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    insertedTransactionIds =
+      insertedTransactions.map(
+        (transaction) =>
+          Number(transaction.id)
+      );
+
     /*
-     * 3) تحديث المحفظة.
+     * 3) الخصم الحقيقي من المحفظة.
      *
-     * يسمح بالرصيد السالب.
+     * يتم داخل PostgreSQL:
+     *
+     * wallet_balance =
+     * wallet_balance - deduction
+     *
+     * وهذا يمنع مشكلة قراءة الرصيد القديم
+     * ثم إعادة كتابته.
      */
     const {
-      data: updatedCaptain,
+      data: newWalletBalance,
       error: walletError,
-    } = await supabase
-      .from("Users")
-      .update({
-        wallet_balance:
-          newWalletBalance,
-      })
-      .eq("id", captainId)
-      .select(
-        "id, wallet_balance"
-      )
-      .single();
+    } = await supabase.rpc(
+      "deduct_wallet_balance",
+      {
+        p_user_id: captainId,
+        p_amount: deduction,
+      }
+    );
 
-    if (
-      walletError ||
-      !updatedCaptain ||
-      Number(
-        updatedCaptain.wallet_balance
-      ) !== newWalletBalance
-    ) {
-      /*
-       * مهم:
-       * نحذف فقط الحركات التي أنشأناها
-       * لهذا الطلب.
-       *
-       * لا نحذف الأرضية القديمة للأسبوع
-       * إذا كانت موجودة أصلًا.
-       */
-      const insertedIds =
-        insertedTransactions.map(
-          (transaction) =>
-            transaction.id
-        );
-
+    if (walletError) {
       if (
-        insertedIds.length > 0
+        insertedTransactionIds.length > 0
       ) {
         await supabase
-          .from(
-            "BalanceTransactions"
-          )
+          .from("BalanceTransactions")
           .delete()
           .in(
             "id",
-            insertedIds
+            insertedTransactionIds
           );
       }
 
       await supabase
         .from("Orders")
         .delete()
-        .eq(
-          "id",
-          order.id
-        );
+        .eq("id", order.id);
 
       return NextResponse.json(
         {
           error:
-            walletError?.message ??
-            "تم إنشاء الطلب لكن تعذر تحديث رصيد محفظة الكابتن",
+            `تعذر خصم ${deduction.toFixed(
+              2
+            )} JD من المحفظة: ${
+              walletError.message
+            }`,
+        },
+        { status: 500 }
+      );
+    }
+
+    const finalWalletBalance =
+      Number(newWalletBalance);
+
+    /*
+     * تحقق أخير من أن RPC أعاد قيمة رقمية.
+     */
+    if (
+      !Number.isFinite(
+        finalWalletBalance
+      )
+    ) {
+      if (
+        insertedTransactionIds.length > 0
+      ) {
+        await supabase
+          .from("BalanceTransactions")
+          .delete()
+          .in(
+            "id",
+            insertedTransactionIds
+          );
+      }
+
+      await supabase
+        .from("Orders")
+        .delete()
+        .eq("id", order.id);
+
+      return NextResponse.json(
+        {
+          error:
+            "تم إنشاء العملية لكن قيمة رصيد المحفظة غير صالحة",
         },
         { status: 500 }
       );
@@ -487,10 +508,10 @@ export async function POST(req: NextRequest) {
 
       deduction,
 
+      walletBefore,
+
       walletBalance:
-        Number(
-          updatedCaptain.wallet_balance
-        ),
+        finalWalletBalance,
 
       captainIsActive,
 
@@ -501,6 +522,32 @@ export async function POST(req: NextRequest) {
         weekEndText,
     });
   } catch (error: any) {
+    /*
+     * محاولة تنظيف أي بيانات أنشأها الطلب
+     * إذا حصل خطأ غير متوقع.
+     */
+    if (
+      insertedTransactionIds.length > 0
+    ) {
+      await supabase
+        .from("BalanceTransactions")
+        .delete()
+        .in(
+          "id",
+          insertedTransactionIds
+        );
+    }
+
+    if (createdOrderId) {
+      await supabase
+        .from("Orders")
+        .delete()
+        .eq(
+          "id",
+          createdOrderId
+        );
+    }
+
     return NextResponse.json(
       {
         error:
