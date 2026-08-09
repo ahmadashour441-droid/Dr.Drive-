@@ -61,11 +61,11 @@ export default async function DashboardPage() {
     0
   );
 
-  // أرباح الكابتن هذا الأسبوع تأتي من مستحقات الطلبات.
-  // حركات الكابتن في BalanceTransactions تُسجل كـ debit،
-  // لذلك الاعتماد على credit هنا كان يعرض الأرباح 0.000.
+  // إجمالي الأرباح = قيمة الطلبات التي أخذها الكابتن كاملة.
+  // لا تعتمد الأرباح على المستحقات غير المسددة ولا على حركة المحفظة.
+  // مثال: طلب قيمته 5 JD يظهر كأرباح 5 JD.
   const totalEarnings = allOrders.reduce(
-    (sum, order) => sum + Number(order.captain_due ?? 0),
+    (sum, order) => sum + Number(order.amount ?? 0),
     0
   );
 
