@@ -45,16 +45,23 @@ export default async function DashboardPage() {
     .eq("is_settled", false)
     .order("created_at", { ascending: false });
 
+  // رصيد المحفظة الحقيقي محفوظ في Users.wallet_balance.
+  // لا نعيد حسابه من الحركات، لأن إغلاق الأسبوع لا يجب
+  // أن يغيّر الرصيد الحالي أو يعيد تسوية الخصومات السابقة.
+  const { data: currentUser } = await supabaseServer
+    .from("Users")
+    .select("wallet_balance")
+    .eq("id", user.id)
+    .single();
+
   const allOrders = orders ?? [];
   const allTransactions = transactions ?? [];
 
   const totalOrders = allOrders.length;
 
-  const walletBalance = allTransactions.reduce((sum, trx) => {
-    return trx.type === "credit"
-      ? sum + Number(trx.amount)
-      : sum - Number(trx.amount);
-  }, 0);
+  const walletBalance = Number(
+    currentUser?.wallet_balance ?? 0
+  );
 
   const unpaidBalance = allOrders.reduce(
     (sum, order) => sum + Number(order.captain_due ?? 0),
