@@ -82,9 +82,11 @@ export async function POST(req: NextRequest) {
 
     const producerId = Number(body.producerId);
     const captainId = Number(body.captainId);
+
     const orderType = String(
       body.orderType ?? "راكب"
     );
+
     const amount = Number(body.amount);
 
     if (
@@ -116,6 +118,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // =========================
+    // الكابتن
+    // =========================
+
     const {
       data: captain,
       error: captainError,
@@ -140,12 +146,18 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // =========================
+    // المنتج
+    // =========================
+
     const {
       data: producer,
       error: producerError,
     } = await supabase
       .from("Users")
-      .select("id, full_name, is_producer")
+      .select(
+        "id, full_name, is_producer"
+      )
       .eq("id", producerId)
       .single();
 
@@ -162,10 +174,18 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // =========================
+    // الأسبوع
+    // =========================
+
     const {
       weekStartText,
       weekEndText,
     } = getJordanWeek();
+
+    // =========================
+    // العمولة
+    // =========================
 
     const commissionPercent =
       orderType === "راكب"
@@ -194,17 +214,22 @@ export async function POST(req: NextRequest) {
         ).toFixed(2)
       );
 
-    /*
-     * الأرضية:
-     * للكابتن الفعّال فقط، ومرة واحدة في الأسبوع.
-     */
+    // =========================
+    // نشاط الكابتن
+    // =========================
+
     const captainIsActive =
       captain.status === true ||
       captain.status === "true" ||
       captain.status === 1 ||
       captain.status === "1";
 
+    // =========================
+    // فحص الأرضية
+    // =========================
+
     let floorApplied = false;
+    let existingFloorId: number | null = null;
 
     if (captainIsActive) {
       const {
@@ -212,8 +237,13 @@ export async function POST(req: NextRequest) {
         error: floorError,
       } = await supabase
         .from("BalanceTransactions")
-        .select("id")
-        .eq("user_id", captainId)
+        .select(
+          "id, wallet_deducted"
+        )
+        .eq(
+          "user_id",
+          captainId
+        )
         .eq(
           "description",
           "الأرضية الأسبوعية"
@@ -226,21 +256,51 @@ export async function POST(req: NextRequest) {
           "week_end",
           weekEndText
         )
+        .order("id", {
+          ascending: true,
+        })
         .limit(1);
 
       if (floorError) {
         return NextResponse.json(
           {
-            error: floorError.message,
+            error:
+              floorError.message,
           },
           { status: 500 }
         );
       }
 
-      floorApplied =
-        !floorRows ||
-        floorRows.length === 0;
+      if (
+        floorRows &&
+        floorRows.length > 0
+      ) {
+        existingFloorId =
+          Number(
+            floorRows[0].id
+          );
+
+        /*
+         * إذا الحركة موجودة ولكن
+         * wallet_deducted = false
+         * فهذا يعني أن الأرضية
+         * تسجلت سابقًا ولم تُخصم.
+         */
+        floorApplied =
+          floorRows[0]
+            .wallet_deducted === false;
+      } else {
+        /*
+         * لا توجد أرضية لهذا الأسبوع.
+         * إذن أول طلب فعّال يضيفها.
+         */
+        floorApplied = true;
+      }
     }
+
+    // =========================
+    // إجمالي الخصم
+    // =========================
 
     const deduction = Number(
       (
@@ -251,29 +311,35 @@ export async function POST(req: NextRequest) {
       ).toFixed(2)
     );
 
-    /*
-     * نحتفظ بالرصيد الحالي فقط للعرض والتدقيق.
-     * الخصم الفعلي لا يتم حسابه من هذه القيمة.
-     * الخصم الفعلي يتم بواسطة RPC داخل قاعدة البيانات.
-     */
     const walletBefore = Number(
       captain.wallet_balance ?? 0
     );
 
-    /*
-     * 1) إنشاء الطلب.
-     */
+    // =========================
+    // إنشاء الطلب
+    // =========================
+
     const {
       data: order,
       error: orderError,
     } = await supabase
       .from("Orders")
       .insert({
-        customer_name: customerName,
-        customer_phone: customerPhone,
-        producer_id: producerId,
-        captain_id: captainId,
-        order_type: orderType,
+        customer_name:
+          customerName,
+
+        customer_phone:
+          customerPhone,
+
+        producer_id:
+          producerId,
+
+        captain_id:
+          captainId,
+
+        order_type:
+          orderType,
+
         amount,
 
         producer_commission:
@@ -297,8 +363,11 @@ export async function POST(req: NextRequest) {
         week_end:
           weekEndText,
 
-        status: "completed",
-        is_settled: false,
+        status:
+          "completed",
+
+        is_settled:
+          false,
       })
       .select()
       .single();
@@ -317,64 +386,125 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    createdOrderId = Number(order.id);
+    createdOrderId =
+      Number(order.id);
 
-    /*
-     * 2) تسجيل الحركات.
-     */
+    // =========================
+    // الحركات المالية
+    // =========================
+
     const transactions: any[] = [];
 
-    if (floorApplied) {
+    /*
+     * إذا لا توجد حركة أرضية:
+     * ننشئها.
+     */
+    if (
+      floorApplied &&
+      existingFloorId === null
+    ) {
       transactions.push({
-        user_id: captainId,
-        order_id: null,
-        type: "debit",
-        amount: FLOOR_AMOUNT,
+        user_id:
+          captainId,
+
+        order_id:
+          null,
+
+        type:
+          "debit",
+
+        amount:
+          FLOOR_AMOUNT,
+
         description:
           "الأرضية الأسبوعية",
+
         week_start:
           weekStartText,
+
         week_end:
           weekEndText,
-        is_settled: false,
+
+        is_settled:
+          false,
+
+        wallet_deducted:
+          false,
       });
     }
 
-    transactions.push({
-      user_id: captainId,
-      order_id: order.id,
-      type: "debit",
-      amount: producerCommission,
-      description:
-        `عمولة ${orderType} - المنتج: ${producer.full_name}`,
-      week_start:
-        weekStartText,
-      week_end:
-        weekEndText,
-      is_settled: false,
-    });
+    // عمولة الكابتن
 
     transactions.push({
-      user_id: producerId,
-      order_id: order.id,
-      type: "credit",
+      user_id:
+        captainId,
+
+      order_id:
+        order.id,
+
+      type:
+        "debit",
+
       amount:
-        netProducerCommission,
+        producerCommission,
+
       description:
-        `عمولة المنتج - ${customerName}`,
+        `عمولة ${orderType} - المنتج: ${producer.full_name}`,
+
       week_start:
         weekStartText,
+
       week_end:
         weekEndText,
-      is_settled: false,
+
+      is_settled:
+        false,
+
+      wallet_deducted:
+        true,
+    });
+
+    // مستحق المنتج
+
+    transactions.push({
+      user_id:
+        producerId,
+
+      order_id:
+        order.id,
+
+      type:
+        "credit",
+
+      amount:
+        netProducerCommission,
+
+      description:
+        `عمولة المنتج - ${customerName}`,
+
+      week_start:
+        weekStartText,
+
+      week_end:
+        weekEndText,
+
+      is_settled:
+        false,
+
+      wallet_deducted:
+        false,
     });
 
     const {
       data: insertedTransactions,
       error: transactionError,
     } = await supabase
-      .from("BalanceTransactions")
-      .insert(transactions)
+      .from(
+        "BalanceTransactions"
+      )
+      .insert(
+        transactions
+      )
       .select("id");
 
     if (
@@ -384,7 +514,10 @@ export async function POST(req: NextRequest) {
       await supabase
         .from("Orders")
         .delete()
-        .eq("id", order.id);
+        .eq(
+          "id",
+          order.id
+        );
 
       return NextResponse.json(
         {
@@ -398,38 +531,41 @@ export async function POST(req: NextRequest) {
 
     insertedTransactionIds =
       insertedTransactions.map(
-        (transaction) =>
-          Number(transaction.id)
+        (row) =>
+          Number(row.id)
       );
 
-    /*
-     * 3) الخصم الحقيقي من المحفظة.
-     *
-     * يتم داخل PostgreSQL:
-     *
-     * wallet_balance =
-     * wallet_balance - deduction
-     *
-     * وهذا يمنع مشكلة قراءة الرصيد القديم
-     * ثم إعادة كتابته.
-     */
+    // =========================
+    // خصم المحفظة
+    // =========================
+
     const {
       data: newWalletBalance,
       error: walletError,
     } = await supabase.rpc(
       "deduct_wallet_balance",
       {
-        p_user_id: captainId,
-        p_amount: deduction,
+        p_user_id:
+          captainId,
+
+        p_amount:
+          deduction,
       }
     );
 
-    if (walletError) {
+    if (
+      walletError ||
+      newWalletBalance === null ||
+      newWalletBalance === undefined
+    ) {
       if (
-        insertedTransactionIds.length > 0
+        insertedTransactionIds.length >
+        0
       ) {
         await supabase
-          .from("BalanceTransactions")
+          .from(
+            "BalanceTransactions"
+          )
           .delete()
           .in(
             "id",
@@ -440,56 +576,95 @@ export async function POST(req: NextRequest) {
       await supabase
         .from("Orders")
         .delete()
-        .eq("id", order.id);
+        .eq(
+          "id",
+          order.id
+        );
 
       return NextResponse.json(
         {
           error:
-            `تعذر خصم ${deduction.toFixed(
-              2
-            )} JD من المحفظة: ${
-              walletError.message
-            }`,
+            walletError?.message ??
+            "تعذر خصم المبلغ من محفظة الكابتن",
         },
         { status: 500 }
       );
     }
 
     const finalWalletBalance =
-      Number(newWalletBalance);
+      Number(
+        newWalletBalance
+      );
+
+    // =========================
+    // تحديث حالة الأرضية
+    // =========================
+
+    if (
+      floorApplied &&
+      existingFloorId !== null
+    ) {
+      const {
+        error:
+          floorUpdateError,
+      } = await supabase
+        .from(
+          "BalanceTransactions"
+        )
+        .update({
+          wallet_deducted:
+            true,
+        })
+        .eq(
+          "id",
+          existingFloorId
+        );
+
+      if (
+        floorUpdateError
+      ) {
+        return NextResponse.json(
+          {
+            error:
+              floorUpdateError.message,
+          },
+          { status: 500 }
+        );
+      }
+    }
 
     /*
-     * تحقق أخير من أن RPC أعاد قيمة رقمية.
+     * إذا أنشأنا حركة أرضية جديدة،
+     * نحدد أنها أصبحت مخصومة فعليًا.
      */
     if (
-      !Number.isFinite(
-        finalWalletBalance
-      )
+      floorApplied &&
+      existingFloorId === null
     ) {
+      const floorTransaction =
+        insertedTransactions.find(
+          (_, index) =>
+            transactions[index]
+              ?.description ===
+            "الأرضية الأسبوعية"
+        );
+
       if (
-        insertedTransactionIds.length > 0
+        floorTransaction
       ) {
         await supabase
-          .from("BalanceTransactions")
-          .delete()
-          .in(
+          .from(
+            "BalanceTransactions"
+          )
+          .update({
+            wallet_deducted:
+              true,
+          })
+          .eq(
             "id",
-            insertedTransactionIds
+            floorTransaction.id
           );
       }
-
-      await supabase
-        .from("Orders")
-        .delete()
-        .eq("id", order.id);
-
-      return NextResponse.json(
-        {
-          error:
-            "تم إنشاء العملية لكن قيمة رصيد المحفظة غير صالحة",
-        },
-        { status: 500 }
-      );
     }
 
     return NextResponse.json({
@@ -522,15 +697,14 @@ export async function POST(req: NextRequest) {
         weekEndText,
     });
   } catch (error: any) {
-    /*
-     * محاولة تنظيف أي بيانات أنشأها الطلب
-     * إذا حصل خطأ غير متوقع.
-     */
     if (
-      insertedTransactionIds.length > 0
+      insertedTransactionIds.length >
+      0
     ) {
       await supabase
-        .from("BalanceTransactions")
+        .from(
+          "BalanceTransactions"
+        )
         .delete()
         .in(
           "id",
@@ -538,7 +712,9 @@ export async function POST(req: NextRequest) {
         );
     }
 
-    if (createdOrderId) {
+    if (
+      createdOrderId
+    ) {
       await supabase
         .from("Orders")
         .delete()
