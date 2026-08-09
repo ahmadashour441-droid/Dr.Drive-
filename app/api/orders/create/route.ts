@@ -69,6 +69,15 @@ export async function POST(req: NextRequest) {
   let createdOrderId: number | null = null;
   let insertedTransactionIds: number[] = [];
 
+  let captainWalletChanged = false;
+  let producerWalletChanged = false;
+
+  let captainIdForRollback: number | null = null;
+  let producerIdForRollback: number | null = null;
+
+  let captainDeductionForRollback = 0;
+  let producerCreditForRollback = 0;
+
   try {
     const body = await req.json();
 
@@ -80,14 +89,21 @@ export async function POST(req: NextRequest) {
       body.customerPhone ?? ""
     ).trim();
 
-    const producerId = Number(body.producerId);
-    const captainId = Number(body.captainId);
+    const producerId = Number(
+      body.producerId
+    );
+
+    const captainId = Number(
+      body.captainId
+    );
 
     const orderType = String(
       body.orderType ?? "راكب"
     );
 
-    const amount = Number(body.amount);
+    const amount = Number(
+      body.amount
+    );
 
     if (
       !customerName ||
@@ -119,7 +135,7 @@ export async function POST(req: NextRequest) {
     }
 
     // =========================
-    // الكابتن
+    // جلب الكابتن
     // =========================
 
     const {
@@ -147,7 +163,7 @@ export async function POST(req: NextRequest) {
     }
 
     // =========================
-    // المنتج
+    // جلب المنتج
     // =========================
 
     const {
@@ -156,7 +172,7 @@ export async function POST(req: NextRequest) {
     } = await supabase
       .from("Users")
       .select(
-        "id, full_name, is_producer"
+        "id, full_name, is_producer, wallet_balance"
       )
       .eq("id", producerId)
       .single();
@@ -174,17 +190,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // =========================
-    // الأسبوع
-    // =========================
-
     const {
       weekStartText,
       weekEndText,
     } = getJordanWeek();
 
     // =========================
-    // العمولة
+    // حساب العمولات
     // =========================
 
     const commissionPercent =
@@ -215,7 +227,7 @@ export async function POST(req: NextRequest) {
       );
 
     // =========================
-    // نشاط الكابتن
+    // التأكد من نشاط الكابتن
     // =========================
 
     const captainIsActive =
@@ -280,40 +292,49 @@ export async function POST(req: NextRequest) {
             floorRows[0].id
           );
 
-        /*
-         * إذا الحركة موجودة ولكن
-         * wallet_deducted = false
-         * فهذا يعني أن الأرضية
-         * تسجلت سابقًا ولم تُخصم.
-         */
         floorApplied =
           floorRows[0]
             .wallet_deducted === false;
       } else {
-        /*
-         * لا توجد أرضية لهذا الأسبوع.
-         * إذن أول طلب فعّال يضيفها.
-         */
         floorApplied = true;
       }
     }
 
     // =========================
-    // إجمالي الخصم
+    // إجمالي خصم الكابتن
     // =========================
 
-    const deduction = Number(
-      (
-        producerCommission +
-        (floorApplied
-          ? FLOOR_AMOUNT
-          : 0)
-      ).toFixed(2)
-    );
+    const captainDeduction =
+      Number(
+        (
+          producerCommission +
+          (floorApplied
+            ? FLOOR_AMOUNT
+            : 0)
+        ).toFixed(2)
+      );
 
-    const walletBefore = Number(
-      captain.wallet_balance ?? 0
-    );
+    captainDeductionForRollback =
+      captainDeduction;
+
+    captainIdForRollback =
+      captainId;
+
+    producerIdForRollback =
+      producerId;
+
+    producerCreditForRollback =
+      netProducerCommission;
+
+    const walletBefore =
+      Number(
+        captain.wallet_balance ?? 0
+      );
+
+    const producerWalletBefore =
+      Number(
+        producer.wallet_balance ?? 0
+      );
 
     // =========================
     // إنشاء الطلب
@@ -395,10 +416,8 @@ export async function POST(req: NextRequest) {
 
     const transactions: any[] = [];
 
-    /*
-     * إذا لا توجد حركة أرضية:
-     * ننشئها.
-     */
+    // الأرضية
+
     if (
       floorApplied &&
       existingFloorId === null
@@ -464,7 +483,7 @@ export async function POST(req: NextRequest) {
         true,
     });
 
-    // مستحق المنتج
+    // عمولة المنتج
 
     transactions.push({
       user_id:
@@ -491,13 +510,18 @@ export async function POST(req: NextRequest) {
       is_settled:
         false,
 
+      /*
+       * أصبحت مضافة فعليًا
+       * إلى محفظة المنتج.
+       */
       wallet_deducted:
-        false,
+        true,
     });
 
     const {
       data: insertedTransactions,
-      error: transactionError,
+      error:
+        transactionError,
     } = await supabase
       .from(
         "BalanceTransactions"
@@ -536,12 +560,13 @@ export async function POST(req: NextRequest) {
       );
 
     // =========================
-    // خصم المحفظة
+    // خصم المحفظة من الكابتن
     // =========================
 
     const {
-      data: newWalletBalance,
-      error: walletError,
+      data: newCaptainWallet,
+      error:
+        captainWalletError,
     } = await supabase.rpc(
       "deduct_wallet_balance",
       {
@@ -549,14 +574,16 @@ export async function POST(req: NextRequest) {
           captainId,
 
         p_amount:
-          deduction,
+          captainDeduction,
       }
     );
 
     if (
-      walletError ||
-      newWalletBalance === null ||
-      newWalletBalance === undefined
+      captainWalletError ||
+      newCaptainWallet ===
+        null ||
+      newCaptainWallet ===
+        undefined
     ) {
       if (
         insertedTransactionIds.length >
@@ -584,20 +611,107 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           error:
-            walletError?.message ??
-            "تعذر خصم المبلغ من محفظة الكابتن",
+            captainWalletError?.message ??
+            "تعذر خصم العمولة والأرضية من محفظة الكابتن",
         },
         { status: 500 }
       );
     }
 
-    const finalWalletBalance =
+    captainWalletChanged =
+      true;
+
+    const captainWalletAfter =
       Number(
-        newWalletBalance
+        newCaptainWallet
       );
 
     // =========================
-    // تحديث حالة الأرضية
+    // إضافة عمولة المنتج
+    // =========================
+
+    const {
+      data: newProducerWallet,
+      error:
+        producerWalletError,
+    } = await supabase.rpc(
+      "add_wallet_balance",
+      {
+        p_user_id:
+          producerId,
+
+        p_amount:
+          netProducerCommission,
+      }
+    );
+
+    if (
+      producerWalletError ||
+      newProducerWallet ===
+        null ||
+      newProducerWallet ===
+        undefined
+    ) {
+      /*
+       * نرجع خصم الكابتن.
+       */
+      await supabase.rpc(
+        "deduct_wallet_balance",
+        {
+          p_user_id:
+            captainId,
+
+          p_amount:
+            -captainDeduction,
+        }
+      );
+
+      captainWalletChanged =
+        false;
+
+      if (
+        insertedTransactionIds.length >
+        0
+      ) {
+        await supabase
+          .from(
+            "BalanceTransactions"
+          )
+          .delete()
+          .in(
+            "id",
+            insertedTransactionIds
+          );
+      }
+
+      await supabase
+        .from("Orders")
+        .delete()
+        .eq(
+          "id",
+          order.id
+        );
+
+      return NextResponse.json(
+        {
+          error:
+            producerWalletError?.message ??
+            "تم خصم مبلغ الكابتن لكن تعذر إضافة عمولة المنتج",
+        },
+        { status: 500 }
+      );
+    }
+
+    producerWalletChanged =
+      true;
+
+    const producerWalletAfter =
+      Number(
+        newProducerWallet
+      );
+
+    // =========================
+    // تحديث الأرضية
     // =========================
 
     if (
@@ -623,19 +737,16 @@ export async function POST(req: NextRequest) {
       if (
         floorUpdateError
       ) {
-        return NextResponse.json(
-          {
-            error:
-              floorUpdateError.message,
-          },
-          { status: 500 }
+        console.error(
+          "Floor update error:",
+          floorUpdateError
         );
       }
     }
 
     /*
      * إذا أنشأنا حركة أرضية جديدة،
-     * نحدد أنها أصبحت مخصومة فعليًا.
+     * نحدد أنها انخصمت فعليًا.
      */
     if (
       floorApplied &&
@@ -667,8 +778,13 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // =========================
+    // النتيجة
+    // =========================
+
     return NextResponse.json({
-      success: true,
+      success:
+        true,
 
       orderId:
         order.id,
@@ -681,12 +797,18 @@ export async function POST(req: NextRequest) {
 
       floorApplied,
 
-      deduction,
+      deduction:
+        captainDeduction,
 
       walletBefore,
 
       walletBalance:
-        finalWalletBalance,
+        captainWalletAfter,
+
+      producerWalletBefore,
+
+      producerWalletBalance:
+        producerWalletAfter,
 
       captainIsActive,
 
@@ -696,7 +818,49 @@ export async function POST(req: NextRequest) {
       weekEnd:
         weekEndText,
     });
+
   } catch (error: any) {
+
+    /*
+     * إذا حدث خطأ بعد خصم الكابتن،
+     * نعيد المبلغ.
+     */
+    if (
+      captainWalletChanged &&
+      captainIdForRollback !== null
+    ) {
+      await supabase.rpc(
+        "deduct_wallet_balance",
+        {
+          p_user_id:
+            captainIdForRollback,
+
+          p_amount:
+            -captainDeductionForRollback,
+        }
+      );
+    }
+
+    /*
+     * إذا حدث خطأ بعد إضافة المنتج،
+     * نرجع عمولة المنتج.
+     */
+    if (
+      producerWalletChanged &&
+      producerIdForRollback !== null
+    ) {
+      await supabase.rpc(
+        "add_wallet_balance",
+        {
+          p_user_id:
+            producerIdForRollback,
+
+          p_amount:
+            -producerCreditForRollback,
+        }
+      );
+    }
+
     if (
       insertedTransactionIds.length >
       0
