@@ -379,16 +379,9 @@ async function closeWeek() {
 
     setClosingWeek(true);
 
-    /*
-     * إغلاق الأسبوع الحالي فقط.
-     *
-     * مهم:
-     * لا نلمس wallet_balance هنا.
-     * الخصومات المالية تتم لحظة إنشاء الطلب،
-     * وإغلاق الأسبوع فقط يغلق طلبات وحركات هذا الأسبوع
-     * حتى تنتقل عملياً إلى سجل الأسابيع السابقة.
-     */
-
+    // إغلاق الأسبوع الحالي فقط.
+    // لا يتم تعديل wallet_balance هنا نهائيًا.
+    // الخصومات المالية تمت لحظة إنشاء الطلب.
     const today = new Date();
 
     const weekStart = new Date(today);
@@ -399,23 +392,11 @@ async function closeWeek() {
 
     weekStart.setHours(0, 0, 0, 0);
 
-    const weekEnd = new Date(weekStart);
-
-    weekEnd.setDate(
-      weekEnd.getDate() + 6
-    );
-
     const weekStartText =
       weekStart.toISOString().split("T")[0];
 
-    const weekEndText =
-      weekEnd.toISOString().split("T")[0];
-
-    /*
-     * إغلاق حركات الأسبوع الحالي فقط.
-     * لا يوجد أي تعديل على رصيد المحفظة.
-     */
-
+    // إغلاق حركات الأسبوع الحالي فقط.
+    // لا يوجد أي خصم أو تعديل على المحفظة هنا.
     const { error: balanceError } =
       await supabase
         .from("BalanceTransactions")
@@ -428,12 +409,8 @@ async function closeWeek() {
     if (balanceError)
       throw balanceError;
 
-    /*
-     * إغلاق طلبات الأسبوع الحالي فقط.
-     * الطلبات تبقى محفوظة في Orders ويمكن عرضها لاحقاً
-     * ضمن الأسابيع السابقة.
-     */
-
+    // إغلاق طلبات الأسبوع الحالي فقط.
+    // الطلبات تبقى محفوظة ويمكن عرضها ضمن الأسابيع السابقة.
     const { error: ordersError } =
       await supabase
         .from("Orders")
@@ -449,7 +426,7 @@ async function closeWeek() {
     setShowCloseDialog(false);
 
     setSuccessMessage(
-      `تم إغلاق أسبوع ${weekStartText} إلى ${weekEndText} بنجاح. لم يتم تغيير أرصدة المحافظ.`
+      "تم إغلاق الأسبوع الحالي وحفظ طلباته في الأسابيع السابقة"
     );
 
     await loadTransactions();
@@ -468,6 +445,7 @@ async function closeWeek() {
   }
 
 }
+
   if (loading) {
 
     return (
@@ -1066,9 +1044,10 @@ className="rounded-lg bg-green-600 px-4 py-2 text-white"
 
             <p className="text-gray-600 leading-8">
 
-              سيتم إغلاق طلبات وحركات الأسبوع الحالي
-              فقط ونقلها عملياً إلى سجل الأسابيع السابقة.
-              لن يتم تغيير أرصدة المحافظ أو إعادة خصم أي مبلغ.
+              سيتم إغلاق طلبات الأسبوع الحالي ونقلها
+              إلى سجل الأسابيع السابقة.
+              لن يتم تعديل رصيد المحفظة أو إعادة أي خصم،
+              لأن الخصومات تتم مباشرة عند تسجيل الطلب.
 
             </p>
 

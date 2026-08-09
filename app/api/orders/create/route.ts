@@ -44,10 +44,9 @@ function getJordanWeek() {
     Date.UTC(year, month - 1, day)
   );
 
-  const daysFromSunday = weekdayNumber[weekday] ?? 0;
-
   current.setUTCDate(
-    current.getUTCDate() - daysFromSunday
+    current.getUTCDate() -
+      (weekdayNumber[weekday] ?? 0)
   );
 
   const weekStartText =
@@ -70,11 +69,19 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
-    const customerName = String(body.customerName ?? "").trim();
-    const customerPhone = String(body.customerPhone ?? "").trim();
+    const customerName = String(
+      body.customerName ?? ""
+    ).trim();
+
+    const customerPhone = String(
+      body.customerPhone ?? ""
+    ).trim();
+
     const producerId = Number(body.producerId);
     const captainId = Number(body.captainId);
-    const orderType = String(body.orderType ?? "راكب");
+    const orderType = String(
+      body.orderType ?? "راكب"
+    );
     const amount = Number(body.amount);
 
     if (
@@ -86,97 +93,162 @@ export async function POST(req: NextRequest) {
       amount <= 0
     ) {
       return NextResponse.json(
-        { error: "بيانات الطلب غير مكتملة أو غير صحيحة" },
+        {
+          error:
+            "بيانات الطلب غير مكتملة أو غير صحيحة",
+        },
         { status: 400 }
       );
     }
 
-    const { data: captain, error: captainError } =
-      await supabase
-        .from("Users")
-        .select("id, full_name, status, wallet_balance, is_captain")
-        .eq("id", captainId)
-        .single();
-
-    if (captainError || !captain || !captain.is_captain) {
+    if (
+      orderType !== "راكب" &&
+      orderType !== "اوردر"
+    ) {
       return NextResponse.json(
-        { error: "الكابتن غير موجود" },
+        {
+          error: "نوع الطلب غير صحيح",
+        },
+        { status: 400 }
+      );
+    }
+
+    const {
+      data: captain,
+      error: captainError,
+    } = await supabase
+      .from("Users")
+      .select(
+        "id, full_name, status, wallet_balance, is_captain"
+      )
+      .eq("id", captainId)
+      .single();
+
+    if (
+      captainError ||
+      !captain ||
+      !captain.is_captain
+    ) {
+      return NextResponse.json(
+        {
+          error: "الكابتن غير موجود",
+        },
         { status: 404 }
       );
     }
 
-    const { data: producer, error: producerError } =
-      await supabase
-        .from("Users")
-        .select("id, full_name, is_producer")
-        .eq("id", producerId)
-        .single();
+    const {
+      data: producer,
+      error: producerError,
+    } = await supabase
+      .from("Users")
+      .select(
+        "id, full_name, is_producer"
+      )
+      .eq("id", producerId)
+      .single();
 
-    if (producerError || !producer || !producer.is_producer) {
+    if (
+      producerError ||
+      !producer ||
+      !producer.is_producer
+    ) {
       return NextResponse.json(
-        { error: "المنتج غير موجود" },
+        {
+          error: "المنتج غير موجود",
+        },
         { status: 404 }
       );
     }
 
-    const { weekStartText, weekEndText } =
-      getJordanWeek();
+    const {
+      weekStartText,
+      weekEndText,
+    } = getJordanWeek();
 
-    const producerPercent =
+    const commissionPercent =
       orderType === "راكب"
         ? PASSENGER_COMMISSION
         : ORDER_COMMISSION;
 
     const producerCommission = Number(
-      ((amount * producerPercent) / 100).toFixed(2)
+      (
+        (amount * commissionPercent) /
+        100
+      ).toFixed(2)
     );
 
     const adminCommission = Number(
-      ((amount * ADMIN_COMMISSION) / 100).toFixed(2)
+      (
+        (amount * ADMIN_COMMISSION) /
+        100
+      ).toFixed(2)
     );
 
-    const netProducerCommission = Number(
-      (producerCommission - adminCommission).toFixed(2)
-    );
+    const netProducerCommission =
+      Number(
+        (
+          producerCommission -
+          adminCommission
+        ).toFixed(2)
+      );
 
     /*
      * الأرضية:
-     * فقط للكابتن الفعّال، وعلى أول طلب له في الأسبوع.
-     *
-     * وجود حركة أرضية لنفس الكابتن ونفس week_start
-     * يعني أن الأرضية احتُسبت بالفعل.
+     * للكابتن الفعّال فقط، ومرة واحدة فقط
+     * في الأسبوع الحالي.
      */
-    let floorApplied = false;
-
     const captainIsActive =
       captain.status === true ||
       captain.status === "true" ||
       captain.status === 1 ||
       captain.status === "1";
 
+    let floorApplied = false;
+
     if (captainIsActive) {
-      const { data: floorRows, error: floorError } =
-        await supabase
-          .from("BalanceTransactions")
-          .select("id")
-          .eq("user_id", captainId)
-          .eq("description", "الأرضية الأسبوعية")
-          .eq("week_start", weekStartText)
-          .limit(1);
+      const {
+        data: floorRows,
+        error: floorError,
+      } = await supabase
+        .from("BalanceTransactions")
+        .select("id")
+        .eq("user_id", captainId)
+        .eq(
+          "description",
+          "الأرضية الأسبوعية"
+        )
+        .eq(
+          "week_start",
+          weekStartText
+        )
+        .eq(
+          "week_end",
+          weekEndText
+        )
+        .limit(1);
 
       if (floorError) {
         return NextResponse.json(
-          { error: floorError.message },
+          {
+            error:
+              floorError.message,
+          },
           { status: 500 }
         );
       }
 
-      floorApplied = !floorRows || floorRows.length === 0;
+      floorApplied =
+        !floorRows ||
+        floorRows.length === 0;
     }
 
     const deduction = Number(
-      (producerCommission +
-        (floorApplied ? FLOOR_AMOUNT : 0)
+      (
+        producerCommission +
+        (floorApplied
+          ? FLOOR_AMOUNT
+          : 0)
       ).toFixed(2)
     );
 
@@ -184,37 +256,61 @@ export async function POST(req: NextRequest) {
       captain.wallet_balance ?? 0
     );
 
-    const newWalletBalance = Number(
-      (currentWallet - deduction).toFixed(3)
-    );
+    const newWalletBalance =
+      Number(
+        (
+          currentWallet -
+          deduction
+        ).toFixed(3)
+      );
 
     /*
      * 1) إنشاء الطلب.
      */
-    const { data: order, error: orderError } =
-      await supabase
-        .from("Orders")
-        .insert({
-          customer_name: customerName,
-          customer_phone: customerPhone,
-          producer_id: producerId,
-          captain_id: captainId,
-          order_type: orderType,
-          amount,
-          producer_commission: producerCommission,
-          admin_commission: adminCommission,
-          net_producer_commission: netProducerCommission,
-          captain_commission: producerCommission,
-          captain_due: producerCommission,
-          week_start: weekStartText,
-          week_end: weekEndText,
-          status: "completed",
-          is_settled: false,
-        })
-        .select()
-        .single();
+    const {
+      data: order,
+      error: orderError,
+    } = await supabase
+      .from("Orders")
+      .insert({
+        customer_name: customerName,
+        customer_phone: customerPhone,
+        producer_id: producerId,
+        captain_id: captainId,
+        order_type: orderType,
+        amount,
 
-    if (orderError || !order) {
+        producer_commission:
+          producerCommission,
+
+        admin_commission:
+          adminCommission,
+
+        net_producer_commission:
+          netProducerCommission,
+
+        captain_commission:
+          producerCommission,
+
+        captain_due:
+          producerCommission,
+
+        week_start:
+          weekStartText,
+
+        week_end:
+          weekEndText,
+
+        status: "completed",
+        is_settled: false,
+      })
+      .select()
+      .single();
+
+    if (
+      orderError ||
+      !order
+    ) {
       return NextResponse.json(
         {
           error:
@@ -226,7 +322,7 @@ export async function POST(req: NextRequest) {
     }
 
     /*
-     * 2) تسجيل الحركات المالية.
+     * 2) تسجيل الحركات.
      */
     const transactions: any[] = [];
 
@@ -236,9 +332,12 @@ export async function POST(req: NextRequest) {
         order_id: null,
         type: "debit",
         amount: FLOOR_AMOUNT,
-        description: "الأرضية الأسبوعية",
-        week_start: weekStartText,
-        week_end: weekEndText,
+        description:
+          "الأرضية الأسبوعية",
+        week_start:
+          weekStartText,
+        week_end:
+          weekEndText,
         is_settled: false,
       });
     }
@@ -248,9 +347,12 @@ export async function POST(req: NextRequest) {
       order_id: order.id,
       type: "debit",
       amount: producerCommission,
-      description: `عمولة ${orderType} - المنتج: ${producer.full_name}`,
-      week_start: weekStartText,
-      week_end: weekEndText,
+      description:
+        `عمولة ${orderType} - المنتج: ${producer.full_name}`,
+      week_start:
+        weekStartText,
+      week_end:
+        weekEndText,
       is_settled: false,
     });
 
@@ -258,32 +360,47 @@ export async function POST(req: NextRequest) {
       user_id: producerId,
       order_id: order.id,
       type: "credit",
-      amount: netProducerCommission,
-      description: `عمولة المنتج - ${customerName}`,
-      week_start: weekStartText,
-      week_end: weekEndText,
+      amount:
+        netProducerCommission,
+      description:
+        `عمولة المنتج - ${customerName}`,
+      week_start:
+        weekStartText,
+      week_end:
+        weekEndText,
       is_settled: false,
     });
 
-    const { error: transactionError } =
-      await supabase
-        .from("BalanceTransactions")
-        .insert(transactions);
+    const {
+      data: insertedTransactions,
+      error: transactionError,
+    } = await supabase
+      .from("BalanceTransactions")
+      .insert(transactions)
+      .select("id");
 
-    if (transactionError) {
+    if (
+      transactionError ||
+      !insertedTransactions
+    ) {
       await supabase
         .from("Orders")
         .delete()
         .eq("id", order.id);
 
       return NextResponse.json(
-        { error: transactionError.message },
+        {
+          error:
+            transactionError?.message ??
+            "تعذر حفظ الحركات المالية",
+        },
         { status: 500 }
       );
     }
 
     /*
-     * 3) تحديث محفظة الكابتن من السيرفر.
+     * 3) تحديث المحفظة.
+     *
      * يسمح بالرصيد السالب.
      */
     const {
@@ -292,35 +409,57 @@ export async function POST(req: NextRequest) {
     } = await supabase
       .from("Users")
       .update({
-        wallet_balance: newWalletBalance,
+        wallet_balance:
+          newWalletBalance,
       })
       .eq("id", captainId)
-      .select("id, wallet_balance")
+      .select(
+        "id, wallet_balance"
+      )
       .single();
 
     if (
       walletError ||
       !updatedCaptain ||
-      Number(updatedCaptain.wallet_balance) !==
-        newWalletBalance
+      Number(
+        updatedCaptain.wallet_balance
+      ) !== newWalletBalance
     ) {
-      await supabase
-        .from("BalanceTransactions")
-        .delete()
-        .eq("order_id", order.id);
+      /*
+       * مهم:
+       * نحذف فقط الحركات التي أنشأناها
+       * لهذا الطلب.
+       *
+       * لا نحذف الأرضية القديمة للأسبوع
+       * إذا كانت موجودة أصلًا.
+       */
+      const insertedIds =
+        insertedTransactions.map(
+          (transaction) =>
+            transaction.id
+        );
 
-      await supabase
-        .from("BalanceTransactions")
-        .delete()
-        .eq("user_id", captainId)
-        .eq("description", "الأرضية الأسبوعية")
-        .eq("week_start", weekStartText)
-        .eq("order_id", null);
+      if (
+        insertedIds.length > 0
+      ) {
+        await supabase
+          .from(
+            "BalanceTransactions"
+          )
+          .delete()
+          .in(
+            "id",
+            insertedIds
+          );
+      }
 
       await supabase
         .from("Orders")
         .delete()
-        .eq("id", order.id);
+        .eq(
+          "id",
+          order.id
+        );
 
       return NextResponse.json(
         {
@@ -332,23 +471,34 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    /*
-     * الإدارة: قيمة العمولة تُحفظ داخل الطلب كـ admin_commission.
-     * لا يوجد في الجداول الحالية التي وصلتنا معرف مستخدم إداري
-     * واضح يمكن إضافة حركة له، لذلك لا نخمن حسابًا إداريًا.
-     */
     return NextResponse.json({
       success: true,
-      orderId: order.id,
+
+      orderId:
+        order.id,
+
       producerCommission,
+
       adminCommission,
+
       netProducerCommission,
+
       floorApplied,
+
       deduction,
-      walletBalance: Number(updatedCaptain.wallet_balance),
+
+      walletBalance:
+        Number(
+          updatedCaptain.wallet_balance
+        ),
+
       captainIsActive,
-      weekStart: weekStartText,
-      weekEnd: weekEndText,
+
+      weekStart:
+        weekStartText,
+
+      weekEnd:
+        weekEndText,
     });
   } catch (error: any) {
     return NextResponse.json(
