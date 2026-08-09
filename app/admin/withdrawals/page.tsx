@@ -4,107 +4,420 @@ import { revalidatePath } from "next/cache";
 async function updateWithdrawalStatus(formData: FormData) {
   "use server";
 
-  const requestId = String(formData.get("requestId") ?? "");
-  const status = String(formData.get("status") ?? "");
+  const requestId = String(
+    formData.get("requestId") ?? ""
+  );
+
+  const status = String(
+    formData.get("status") ?? ""
+  );
 
   if (!requestId) {
     return;
   }
 
-  if (status !== "approved" && status !== "rejected") {
+  if (
+    status !== "approved" &&
+    status !== "rejected"
+  ) {
     return;
   }
 
-  /*
-   * الموافقة/الرفض لا تغيّر wallet_balance.
-   * المبلغ تم احتسابه ضمن مستحقات الكابتن أصلًا،
-   * والسحب يستهلك جزءًا من المستحقات فقط.
-   *
-   * الشرط status = pending يمنع معالجة نفس الطلب مرتين.
-   */
-  const { data: updatedRequest, error } =
-    await supabaseServer
+  // =========================
+  // جلب طلب السحب
+  // =========================
+
+  const {
+    data: request,
+    error: requestError,
+  } = await supabaseServer
+    .from("WithdrawalRequests")
+    .select("*")
+    .eq("id", requestId)
+    .eq("status", "pending")
+    .single();
+
+  if (
+    requestError ||
+    !request
+  ) {
+    console.error(
+      "Withdrawal request error:",
+      requestError
+    );
+
+    return;
+  }
+
+  const userId = Number(
+    request.user_id
+  );
+
+  const amount = Number(
+    request.amount
+  );
+
+  if (
+    !Number.isInteger(userId) ||
+    !Number.isFinite(amount) ||
+    amount <= 0
+  ) {
+    console.error(
+      "Invalid withdrawal data"
+    );
+
+    return;
+  }
+
+  // =========================
+  // الرفض
+  // =========================
+
+  if (status === "rejected") {
+    const {
+      error: rejectError,
+    } = await supabaseServer
       .from("WithdrawalRequests")
       .update({
-        status,
-        processed_at: new Date().toISOString(),
+        status: "rejected",
+        processed_at:
+          new Date().toISOString(),
       })
       .eq("id", requestId)
-      .eq("status", "pending")
-      .select("id")
-      .maybeSingle();
+      .eq("status", "pending");
 
-  if (error) {
-    console.error(
-      "Withdrawal status update error:",
-      error
+    if (rejectError) {
+      console.error(
+        "Withdrawal rejection error:",
+        rejectError
+      );
+
+      return;
+    }
+
+    revalidatePath(
+      "/admin/withdrawals"
     );
+
+    revalidatePath(
+      "/admin"
+    );
+
+    revalidatePath(
+      "/dashboard/accounting"
+    );
+
     return;
   }
 
-  /*
-   * إذا لم يتغير أي صف، فالطلب تمت معالجته
-   * مسبقًا أو لم يعد pending.
-   */
-  if (!updatedRequest) {
+  // =========================
+  // الموافقة
+  // =========================
+
+  const {
+    data: user,
+    error: userError,
+  } = await supabaseServer
+    .from("Users")
+    .select(
+      "id, full_name, wallet_balance"
+    )
+    .eq("id", userId)
+    .single();
+
+  if (
+    userError ||
+    !user
+  ) {
     console.error(
-      "Withdrawal request was already processed or not found."
+      "User not found:",
+      userError
     );
+
     return;
   }
 
-  revalidatePath("/admin/withdrawals");
-  revalidatePath("/admin");
-  revalidatePath("/dashboard/accounting");
+  const walletBalance = Number(
+    user.wallet_balance ?? 0
+  );
+
+  // =========================
+  // التأكد من توفر الرصيد
+  // =========================
+
+  if (
+    walletBalance < amount
+  ) {
+    console.error(
+      `الرصيد غير كافٍ. الرصيد: ${walletBalance}, السحب: ${amount}`
+    );
+
+    return;
+  }
+
+  // =========================
+  // خصم المحفظة
+  //
+  // deduct_wallet_balance
+  // تقوم بـ:
+  //
+  // wallet_balance =
+  // wallet_balance - amount
+  // =========================
+
+  const {
+    data: newWalletBalance,
+    error: walletError,
+  } = await supabaseServer.rpc(
+    "deduct_wallet_balance",
+    {
+      p_user_id: userId,
+      p_amount: amount,
+    }
+  );
+
+  if (
+    walletError ||
+    newWalletBalance === null ||
+    newWalletBalance === undefined
+  ) {
+    console.error(
+      "Wallet deduction error:",
+      walletError
+    );
+
+    return;
+  }
+
+  const finalWalletBalance =
+    Number(
+      newWalletBalance
+    );
+
+  // =========================
+  // تسجيل حركة السحب
+  // =========================
+
+  const {
+    data: transaction,
+    error:
+      transactionError,
+  } = await supabaseServer
+    .from(
+      "BalanceTransactions"
+    )
+    .insert({
+      user_id: userId,
+      order_id: null,
+      type: "debit",
+      amount: amount,
+      description:
+        "سحب مستحقات",
+      is_settled: false,
+      wallet_deducted: true,
+    })
+    .select("id")
+    .single();
+
+  // =========================
+  // إذا فشل تسجيل الحركة
+  // نرجع المبلغ للمحفظة
+  // =========================
+
+  if (
+    transactionError ||
+    !transaction
+  ) {
+    console.error(
+      "Withdrawal transaction error:",
+      transactionError
+    );
+
+    await supabaseServer.rpc(
+      "deduct_wallet_balance",
+      {
+        p_user_id: userId,
+        p_amount: -amount,
+      }
+    );
+
+    return;
+  }
+
+  // =========================
+  // تحديث حالة طلب السحب
+  // =========================
+
+  const {
+    data: updatedRequest,
+    error:
+      updateError,
+  } = await supabaseServer
+    .from(
+      "WithdrawalRequests"
+    )
+    .update({
+      status: "approved",
+      processed_at:
+        new Date().toISOString(),
+    })
+    .eq(
+      "id",
+      requestId
+    )
+    .eq(
+      "status",
+      "pending"
+    )
+    .select("id")
+    .maybeSingle();
+
+  // =========================
+  // إذا فشل تحديث الطلب
+  // نرجع كل شيء
+  // =========================
+
+  if (
+    updateError ||
+    !updatedRequest
+  ) {
+    console.error(
+      "Withdrawal approval update error:",
+      updateError
+    );
+
+    // حذف حركة السحب
+    await supabaseServer
+      .from(
+        "BalanceTransactions"
+      )
+      .delete()
+      .eq(
+        "id",
+        transaction.id
+      );
+
+    // إعادة المبلغ للمحفظة
+    await supabaseServer.rpc(
+      "deduct_wallet_balance",
+      {
+        p_user_id: userId,
+        p_amount: -amount,
+      }
+    );
+
+    return;
+  }
+
+  // =========================
+  // تحديث الصفحات
+  // =========================
+
+  revalidatePath(
+    "/admin/withdrawals"
+  );
+
+  revalidatePath(
+    "/admin"
+  );
+
+  revalidatePath(
+    "/dashboard/accounting"
+  );
+
+  revalidatePath(
+    "/dashboard"
+  );
 }
 
 export default async function AdminWithdrawalsPage() {
-  const { data: requests, error } = await supabaseServer
+  const {
+    data: requests,
+    error,
+  } = await supabaseServer
     .from("WithdrawalRequests")
     .select("*")
-    .order("created_at", { ascending: false });
+    .order(
+      "created_at",
+      {
+        ascending: false,
+      }
+    );
 
   if (error) {
-    console.error("Withdrawal requests error:", error);
+    console.error(
+      "Withdrawal requests error:",
+      error
+    );
   }
 
-  const allRequests = requests ?? [];
+  const allRequests =
+    requests ?? [];
 
-  /*
-   * جلب أسماء الكباتن
-   */
+  // =========================
+  // جلب أسماء الكباتن
+  // =========================
+
   const userIds = [
     ...new Set(
       allRequests
-        .map((request: any) => request.user_id)
+        .map(
+          (request: any) =>
+            request.user_id
+        )
         .filter(Boolean)
     ),
   ];
 
-  let usersMap: Record<string, any> = {};
+  let usersMap: Record<
+    string,
+    any
+  > = {};
 
-  if (userIds.length > 0) {
-    const { data: users } = await supabaseServer
+  if (
+    userIds.length > 0
+  ) {
+    const {
+      data: users,
+    } = await supabaseServer
       .from("Users")
-      .select("id, full_name")
-      .in("id", userIds);
+      .select(
+        "id, full_name"
+      )
+      .in(
+        "id",
+        userIds
+      );
 
-    for (const user of users ?? []) {
-      usersMap[user.id] = user;
+    for (
+      const user of users ?? []
+    ) {
+      usersMap[
+        user.id
+      ] = user;
     }
   }
 
-  const pendingCount = allRequests.filter(
-    (request: any) => request.status === "pending"
-  ).length;
+  const pendingCount =
+    allRequests.filter(
+      (request: any) =>
+        request.status ===
+        "pending"
+    ).length;
 
-  const approvedCount = allRequests.filter(
-    (request: any) => request.status === "approved"
-  ).length;
+  const approvedCount =
+    allRequests.filter(
+      (request: any) =>
+        request.status ===
+        "approved"
+    ).length;
 
-  const rejectedCount = allRequests.filter(
-    (request: any) => request.status === "rejected"
-  ).length;
+  const rejectedCount =
+    allRequests.filter(
+      (request: any) =>
+        request.status ===
+        "rejected"
+    ).length;
 
   return (
     <main
@@ -112,8 +425,6 @@ export default async function AdminWithdrawalsPage() {
       className="min-h-screen bg-[#EEF3F9] px-4 py-8 text-[#13294B] sm:px-6 lg:px-10"
     >
       <div className="mx-auto max-w-[1400px]">
-
-        {/* ========================= HEADER ========================= */}
 
         <div className="mb-8">
           <h1 className="text-3xl font-black">
@@ -124,8 +435,6 @@ export default async function AdminWithdrawalsPage() {
             مراجعة وإدارة طلبات سحب المستحقات الخاصة بالكباتن.
           </p>
         </div>
-
-        {/* ========================= STATISTICS ========================= */}
 
         <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
 
@@ -160,8 +469,6 @@ export default async function AdminWithdrawalsPage() {
           </div>
 
         </div>
-
-        {/* ========================= REQUESTS ========================= */}
 
         <div className="overflow-hidden rounded-2xl bg-white shadow">
 
@@ -217,15 +524,17 @@ export default async function AdminWithdrawalsPage() {
                     (request: any) => {
 
                       const user =
-                        usersMap[request.user_id];
+                        usersMap[
+                          request.user_id
+                        ];
 
                       return (
                         <tr
-                          key={request.id}
+                          key={
+                            request.id
+                          }
                           className="border-t"
                         >
-
-                          {/* الكابتن */}
 
                           <td className="p-4">
 
@@ -235,25 +544,25 @@ export default async function AdminWithdrawalsPage() {
                             </div>
 
                             <div className="mt-1 text-xs text-gray-400">
-                              ID: {request.user_id}
+                              ID:{" "}
+                              {
+                                request.user_id
+                              }
                             </div>
 
                           </td>
-
-                          {/* المبلغ */}
 
                           <td className="p-4">
 
                             <span className="text-lg font-black">
                               {Number(
-                                request.amount ?? 0
+                                request.amount ??
+                                  0
                               ).toFixed(3)}{" "}
                               JD
                             </span>
 
                           </td>
-
-                          {/* التاريخ */}
 
                           <td className="p-4 text-gray-500">
 
@@ -276,8 +585,6 @@ export default async function AdminWithdrawalsPage() {
                               : "-"}
 
                           </td>
-
-                          {/* الحالة */}
 
                           <td className="p-4">
 
@@ -304,8 +611,6 @@ export default async function AdminWithdrawalsPage() {
 
                           </td>
 
-                          {/* الإجراء */}
-
                           <td className="p-4">
 
                             {request.status ===
@@ -318,6 +623,7 @@ export default async function AdminWithdrawalsPage() {
                                     updateWithdrawalStatus
                                   }
                                 >
+
                                   <input
                                     type="hidden"
                                     name="requestId"
@@ -338,6 +644,7 @@ export default async function AdminWithdrawalsPage() {
                                   >
                                     موافقة
                                   </button>
+
                                 </form>
 
                                 <form
@@ -345,6 +652,7 @@ export default async function AdminWithdrawalsPage() {
                                     updateWithdrawalStatus
                                   }
                                 >
+
                                   <input
                                     type="hidden"
                                     name="requestId"
@@ -365,6 +673,7 @@ export default async function AdminWithdrawalsPage() {
                                   >
                                     رفض
                                   </button>
+
                                 </form>
 
                               </div>
