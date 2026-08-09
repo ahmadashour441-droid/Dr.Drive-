@@ -20,19 +20,34 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const sessionUser = JSON.parse(session.value);
+    let sessionUser;
 
-    // قراءة البيانات القادمة من الصفحة
+    try {
+      sessionUser = JSON.parse(session.value);
+    } catch {
+      return NextResponse.json(
+        { error: "جلسة الدخول غير صالحة" },
+        { status: 401 }
+      );
+    }
+
+    // قراءة البيانات
     const { amount, receipt_image } = await req.json();
 
-    if (!amount || !receipt_image) {
+    const numericAmount = Number(amount);
+
+    if (
+      !Number.isFinite(numericAmount) ||
+      numericAmount <= 0 ||
+      !receipt_image
+    ) {
       return NextResponse.json(
-        { error: "البيانات غير مكتملة" },
+        { error: "البيانات غير مكتملة أو غير صحيحة" },
         { status: 400 }
       );
     }
 
-    // جلب بيانات المستخدم من جدول Users
+    // جلب بيانات المستخدم
     const { data: user, error: userError } = await supabase
       .from("Users")
       .select("id, full_name, phone")
@@ -40,44 +55,85 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (userError || !user) {
+      console.error("User error:", userError);
+
       return NextResponse.json(
         { error: "تعذر العثور على بيانات المستخدم" },
         { status: 404 }
       );
     }
 
-    // حفظ طلب الشحن
-    const { error: insertError } = await supabase
+    // =====================================================
+    // منع إرسال طلب شحن جديد إذا يوجد طلب Pending
+    // =====================================================
+
+    const { data: pendingRequest, error: pendingError } =
+      await supabase
+        .from("RechargeRequests")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("status", "pending")
+        .limit(1)
+        .maybeSingle();
+
+    if (pendingError) {
+      console.error("Pending check error:", pendingError);
+
+      return NextResponse.json(
+        { error: "تعذر التحقق من طلبات الشحن الحالية" },
+        { status: 500 }
+      );
+    }
+
+    if (pendingRequest) {
+      return NextResponse.json(
+        {
+          error:
+            "لديك طلب شحن قيد المراجعة بالفعل، يرجى الانتظار حتى تتم مراجعته.",
+        },
+        { status: 409 }
+      );
+    }
+
+    // =====================================================
+    // إنشاء طلب الشحن
+    // =====================================================
+
+    const { data: newRequest, error: insertError } = await supabase
       .from("RechargeRequests")
       .insert({
         user_id: user.id,
         full_name: user.full_name,
         phone: user.phone,
-        amount: Number(amount),
+        amount: numericAmount,
         receipt_image,
         status: "pending",
-      });
+      })
+      .select("id")
+      .single();
 
     if (insertError) {
-      console.error(insertError);
+      console.error("Recharge insert error:", insertError);
 
       return NextResponse.json(
-        { error: insertError.message },
+        {
+          error: "تعذر إنشاء طلب الشحن، يرجى المحاولة مرة أخرى.",
+        },
         { status: 500 }
       );
     }
 
     return NextResponse.json({
       success: true,
+      request_id: newRequest.id,
       message: "تم إرسال طلب الشحن بنجاح",
     });
-
   } catch (err: any) {
-    console.error(err);
+    console.error("Recharge API error:", err);
 
     return NextResponse.json(
       {
-        error: err.message || "حدث خطأ غير متوقع",
+        error: err?.message || "حدث خطأ غير متوقع",
       },
       {
         status: 500,
