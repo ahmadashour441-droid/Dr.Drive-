@@ -68,20 +68,11 @@ export async function POST() {
     } = getJordanWeek();
 
     /*
-     * مهم جدًا:
-     *
-     * إغلاق الأسبوع لا يلمس:
-     * Users.wallet_balance
-     *
-     * الرصيد يتم تغييره لحظة حدوث الشحن أو الطلب.
-     *
-     * هنا فقط نغلق طلبات وحركات الأسبوع الحالي.
+     * ==========================================
+     * 1) إغلاق الحركات المالية للأسبوع الحالي
+     * ==========================================
      */
 
-    /*
-     * أولًا: نتأكد أن الحركات التي سنغلقها
-     * تخص الأسبوع الحالي بالكامل.
-     */
     const {
       data: currentTransactions,
       error: transactionFetchError,
@@ -95,24 +86,21 @@ export async function POST() {
     if (transactionFetchError) {
       return NextResponse.json(
         {
-          error:
-            transactionFetchError.message,
+          error: transactionFetchError.message,
         },
         { status: 500 }
       );
     }
 
-    /*
-     * ثانيًا: نغلق الحركات.
-     */
+    let transactionsClosed = 0;
+
     if (
       currentTransactions &&
       currentTransactions.length > 0
     ) {
       const transactionIds =
         currentTransactions.map(
-          (transaction) =>
-            transaction.id
+          (transaction) => transaction.id
         );
 
       const {
@@ -122,10 +110,7 @@ export async function POST() {
         .update({
           is_settled: true,
         })
-        .in(
-          "id",
-          transactionIds
-        );
+        .in("id", transactionIds);
 
       if (transactionUpdateError) {
         return NextResponse.json(
@@ -136,15 +121,17 @@ export async function POST() {
           { status: 500 }
         );
       }
+
+      transactionsClosed =
+        currentTransactions.length;
     }
 
     /*
-     * ثالثًا: نغلق طلبات الأسبوع نفسه.
-     *
-     * لا يتم تعديل amount
-     * ولا captain_due
-     * ولا wallet_balance.
+     * ==========================================
+     * 2) إغلاق الطلبات للأسبوع الحالي
+     * ==========================================
      */
+
     const {
       data: currentOrders,
       error: orderFetchError,
@@ -158,12 +145,13 @@ export async function POST() {
     if (orderFetchError) {
       return NextResponse.json(
         {
-          error:
-            orderFetchError.message,
+          error: orderFetchError.message,
         },
         { status: 500 }
       );
     }
+
+    let ordersClosed = 0;
 
     if (
       currentOrders &&
@@ -184,13 +172,6 @@ export async function POST() {
         .in("id", orderIds);
 
       if (orderUpdateError) {
-        /*
-         * ملاحظة:
-         * لا نرجع أي مبلغ للمحفظة هنا.
-         *
-         * في حالة فشل تحديث الطلبات بعد تحديث
-         * الحركات، لا نلمس wallet_balance.
-         */
         return NextResponse.json(
           {
             error:
@@ -199,18 +180,31 @@ export async function POST() {
           { status: 500 }
         );
       }
+
+      ordersClosed =
+        currentOrders.length;
     }
+
+    /*
+     * ==========================================
+     * مهم:
+     *
+     * لا نلمس Users.wallet_balance
+     * ولا نرجع أي مبلغ للمحفظة.
+     *
+     * المحفظة لا تتغير عند إغلاق الأسبوع.
+     * ==========================================
+     */
 
     return NextResponse.json({
       success: true,
       weekStart,
       weekEnd,
-      transactionsClosed:
-        currentTransactions?.length ?? 0,
-      ordersClosed:
-        currentOrders?.length ?? 0,
+      transactionsClosed,
+      ordersClosed,
       walletChanged: false,
     });
+
   } catch (error: any) {
     return NextResponse.json(
       {
