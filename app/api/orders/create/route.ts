@@ -245,33 +245,37 @@ export async function POST(req: NextRequest) {
 
     if (captainIsActive) {
       const {
-        data: floorRows,
-        error: floorError,
-      } = await supabase
-        .from("BalanceTransactions")
-        .select(
-          "id, wallet_deducted"
-        )
-        .eq(
-          "user_id",
-          captainId
-        )
-        .eq(
-          "description",
-          "الأرضية الأسبوعية"
-        )
-        .eq(
-          "week_start",
-          weekStartText
-        )
-        .eq(
-          "week_end",
-          weekEndText
-        )
-        .order("id", {
-          ascending: true,
-        })
-        .limit(1);
+  data: floorRows,
+  error: floorError,
+} = await supabase
+  .from("BalanceTransactions")
+  .select(
+    "id, wallet_deducted"
+  )
+  .eq(
+    "user_id",
+    captainId
+  )
+  .eq(
+    "description",
+    "الأرضية الأسبوعية"
+  )
+  .eq(
+    "week_start",
+    weekStartText
+  )
+  .eq(
+    "week_end",
+    weekEndText
+  )
+  .eq(
+    "is_settled",
+    false
+  )
+  .order("id", {
+    ascending: true,
+  })
+  .limit(1);
 
       if (floorError) {
         return NextResponse.json(

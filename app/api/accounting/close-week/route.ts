@@ -69,8 +69,11 @@ export async function POST() {
 
     /*
      * ==========================================
-     * 1) إغلاق الحركات المالية للأسبوع الحالي
+     * 1) إغلاق الحركات المالية
      * ==========================================
+     *
+     * نستخدم week_start فقط حتى نضمن إغلاق
+     * جميع حركات الأسبوع الحالي.
      */
 
     const {
@@ -80,13 +83,13 @@ export async function POST() {
       .from("BalanceTransactions")
       .select("id")
       .eq("is_settled", false)
-      .eq("week_start", weekStart)
-      .eq("week_end", weekEnd);
+      .eq("week_start", weekStart);
 
     if (transactionFetchError) {
       return NextResponse.json(
         {
-          error: transactionFetchError.message,
+          error:
+            transactionFetchError.message,
         },
         { status: 500 }
       );
@@ -100,7 +103,8 @@ export async function POST() {
     ) {
       const transactionIds =
         currentTransactions.map(
-          (transaction) => transaction.id
+          (transaction) =>
+            transaction.id
         );
 
       const {
@@ -110,7 +114,10 @@ export async function POST() {
         .update({
           is_settled: true,
         })
-        .in("id", transactionIds);
+        .in(
+          "id",
+          transactionIds
+        );
 
       if (transactionUpdateError) {
         return NextResponse.json(
@@ -128,7 +135,7 @@ export async function POST() {
 
     /*
      * ==========================================
-     * 2) إغلاق الطلبات للأسبوع الحالي
+     * 2) إغلاق الطلبات
      * ==========================================
      */
 
@@ -139,13 +146,13 @@ export async function POST() {
       .from("Orders")
       .select("id")
       .eq("is_settled", false)
-      .eq("week_start", weekStart)
-      .eq("week_end", weekEnd);
+      .eq("week_start", weekStart);
 
     if (orderFetchError) {
       return NextResponse.json(
         {
-          error: orderFetchError.message,
+          error:
+            orderFetchError.message,
         },
         { status: 500 }
       );
@@ -169,7 +176,10 @@ export async function POST() {
         .update({
           is_settled: true,
         })
-        .in("id", orderIds);
+        .in(
+          "id",
+          orderIds
+        );
 
       if (orderUpdateError) {
         return NextResponse.json(
@@ -187,13 +197,23 @@ export async function POST() {
 
     /*
      * ==========================================
-     * مهم:
-     *
-     * لا نلمس Users.wallet_balance
-     * ولا نرجع أي مبلغ للمحفظة.
-     *
-     * المحفظة لا تتغير عند إغلاق الأسبوع.
+     * مهم جدًا
      * ==========================================
+     *
+     * لا نلمس wallet_balance.
+     *
+     * لا نرجع أي مبلغ.
+     *
+     * لا نغير العمولة.
+     *
+     * لا نغير الأرباح.
+     *
+     * فقط نغلق طلبات وحركات الأسبوع.
+     *
+     * بعد الإغلاق، create-order يبحث عن
+     * أرضية غير مغلقة.
+     *
+     * لذلك أول طلب جديد سيأخذ 1 JD أرضية.
      */
 
     return NextResponse.json({
