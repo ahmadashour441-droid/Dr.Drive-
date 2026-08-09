@@ -15,22 +15,47 @@ async function updateWithdrawalStatus(formData: FormData) {
     return;
   }
 
-  const { error } = await supabaseServer
-    .from("WithdrawalRequests")
-    .update({
-      status,
-      processed_at: new Date().toISOString(),
-    })
-    .eq("id", requestId)
-    .eq("status", "pending");
+  /*
+   * الموافقة/الرفض لا تغيّر wallet_balance.
+   * المبلغ تم احتسابه ضمن مستحقات الكابتن أصلًا،
+   * والسحب يستهلك جزءًا من المستحقات فقط.
+   *
+   * الشرط status = pending يمنع معالجة نفس الطلب مرتين.
+   */
+  const { data: updatedRequest, error } =
+    await supabaseServer
+      .from("WithdrawalRequests")
+      .update({
+        status,
+        processed_at: new Date().toISOString(),
+      })
+      .eq("id", requestId)
+      .eq("status", "pending")
+      .select("id")
+      .maybeSingle();
 
   if (error) {
-    console.error("Withdrawal status update error:", error);
+    console.error(
+      "Withdrawal status update error:",
+      error
+    );
+    return;
+  }
+
+  /*
+   * إذا لم يتغير أي صف، فالطلب تمت معالجته
+   * مسبقًا أو لم يعد pending.
+   */
+  if (!updatedRequest) {
+    console.error(
+      "Withdrawal request was already processed or not found."
+    );
     return;
   }
 
   revalidatePath("/admin/withdrawals");
   revalidatePath("/admin");
+  revalidatePath("/dashboard/accounting");
 }
 
 export default async function AdminWithdrawalsPage() {

@@ -92,8 +92,23 @@ export default async function CaptainAccountingPage() {
   const walletBalance =
     Number(currentUser?.wallet_balance ?? 0);
 
-  const pendingWithdrawals = allWithdrawals
-    .filter((request: any) => request.status === "pending")
+  /*
+   * أي طلب سحب قيد المراجعة أو تمت الموافقة عليه
+   * يعتبر جزءًا من المستحقات التي تم حجزها للسحب.
+   *
+   * لذلك:
+   * المتاح = المستحقات غير المسددة
+   *          - المبالغ المعلقة
+   *          - المبالغ الموافق عليها
+   *
+   * لا نخصم هذه المبالغ من wallet_balance هنا.
+   */
+  const reservedWithdrawals = allWithdrawals
+    .filter(
+      (request: any) =>
+        request.status === "pending" ||
+        request.status === "approved"
+    )
     .reduce(
       (sum: number, request: any) =>
         sum + Number(request.amount ?? 0),
@@ -102,7 +117,7 @@ export default async function CaptainAccountingPage() {
 
   const availableForWithdrawal = Math.max(
     0,
-    unpaidCaptainDue - pendingWithdrawals
+    unpaidCaptainDue - reservedWithdrawals
   );
 
   /* =========================
