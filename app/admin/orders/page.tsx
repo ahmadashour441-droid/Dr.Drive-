@@ -1,3 +1,6 @@
+in_orders_fixed.tsx
+
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -24,7 +27,7 @@ export default function OrdersPage() {
   const [settings, setSettings] = useState({
     passenger_commission: 15,
     order_commission: 20,
-    admin_commission: 3,
+    admin_commission: 2,
   });
 
   const [customerName, setCustomerName] = useState("");
@@ -79,324 +82,49 @@ export default function OrdersPage() {
 
     const value = Number(amount);
 
-    if (value <= 0) {
+    if (!Number.isFinite(value) || value <= 0) {
       alert("يرجى إدخال قيمة طلب صحيحة");
       return;
     }
 
-    const selectedCaptain = captains.find(
-      (captain) => captain.id === Number(captainId)
-    );
-
-    if (!selectedCaptain) {
-      alert("تعذر العثور على الكابتن");
-      return;
-    }
-
-    /*
-     * حالة الكابتن:
-     *
-     * true  = فعّال
-     * false = غير فعّال
-     *
-     * الأرضية الأسبوعية تحسب فقط للكابتن الفعّال.
-     */
-    const captainIsActive =
-      selectedCaptain.status === true;
-
-    const producerPercent =
-      orderType === "راكب"
-        ? settings.passenger_commission
-        : settings.order_commission;
-
-    const producerCommission = Number(
-      (
-        (value * producerPercent) /
-        100
-      ).toFixed(2)
-    );
-
-    const adminCommission = Number(
-      (
-        (value * settings.admin_commission) /
-        100
-      ).toFixed(2)
-    );
-
-    const netProducerCommission = Number(
-      (
-        producerCommission -
-        adminCommission
-      ).toFixed(2)
-    );
-
-    const today = new Date();
-
-    const weekStart = new Date(today);
-
-    weekStart.setDate(
-      today.getDate() - today.getDay()
-    );
-
-    weekStart.setHours(0, 0, 0, 0);
-
-    const weekEnd = new Date(weekStart);
-
-    weekEnd.setDate(
-      weekEnd.getDate() + 6
-    );
-
-    const weekStartText =
-      weekStart.toISOString().split("T")[0];
-
-    const weekEndText =
-      weekEnd.toISOString().split("T")[0];
-
-    /*
-     * التحقق هل الأرضية احتسبت لهذا الكابتن
-     * خلال الأسبوع الحالي.
-     *
-     * مهم:
-     * حتى لو لم توجد أرضية، إذا كان الكابتن
-     * غير فعّال فلن نضيف أرضية.
-     */
-
-    const {
-      data: floorRows,
-      error: floorError,
-    } = await supabase
-      .from("BalanceTransactions")
-      .select("id")
-      .eq(
-        "user_id",
-        Number(captainId)
-      )
-      .eq(
-        "description",
-        "الأرضية الأسبوعية"
-      )
-      .eq(
-        "week_start",
-        weekStartText
-      );
-
-    if (floorError) {
-      alert(floorError.message);
-      return;
-    }
-
-    const firstOrderThisWeek =
-      captainIsActive &&
-      (!floorRows ||
-        floorRows.length === 0);
-
-    /*
-     * إنشاء الطلب
-     */
-
-    const {
-      data: order,
-      error: orderError,
-    } = await supabase
-      .from("Orders")
-      .insert({
-        customer_name: customerName,
-        customer_phone: customerPhone,
-        producer_id: Number(producerId),
-        captain_id: Number(captainId),
-        order_type: orderType,
-        amount: value,
-        producer_commission:
-          producerCommission,
-        admin_commission:
-          adminCommission,
-        net_producer_commission:
-          netProducerCommission,
-        captain_commission:
-          producerCommission,
-        captain_due:
-          producerCommission,
-        week_start:
-          weekStartText,
-        week_end:
-          weekEndText,
-        status: "completed",
-        is_settled: false,
-      })
-      .select()
-      .single();
-
-    if (orderError) {
-      alert(orderError.message);
-      return;
-    }
-
-    const producer = producers.find(
-      (p) =>
-        p.id === Number(producerId)
-    );
-
-    const transactions: any[] = [];
-
-    /*
-     * الأرضية الأسبوعية
-     *
-     * فقط:
-     * - الكابتن فعّال
-     * - أول طلب له في الأسبوع
-     */
-
-    if (firstOrderThisWeek) {
-      transactions.push({
-        user_id: Number(captainId),
-        order_id: null,
-        type: "debit",
-        amount: 1,
-        description:
-          "الأرضية الأسبوعية",
-        week_start:
-          weekStartText,
-        week_end:
-          weekEndText,
-        is_settled: false,
+    try {
+      const response = await fetch("/api/orders/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          customerName,
+          customerPhone,
+          producerId: Number(producerId),
+          captainId: Number(captainId),
+          orderType,
+          amount: value,
+        }),
       });
-    }
 
-    /*
-     * مستحق الكابتن
-     */
+      const result = await response.json();
 
-    transactions.push({
-      user_id: Number(captainId),
-      order_id: order.id,
-      type: "debit",
-      amount:
-        producerCommission,
-      description:
-        `عمولة ${orderType} - المنتج: ${
-          producer?.full_name ?? ""
-        }`,
-      week_start:
-        weekStartText,
-      week_end:
-        weekEndText,
-      is_settled: false,
-    });
+      if (!response.ok) {
+        alert(result.error ?? "تعذر حفظ الطلب");
+        return;
+      }
 
-    /*
-     * مستحق المنتج
-     */
-
-    transactions.push({
-      user_id: Number(producerId),
-      order_id: order.id,
-      type: "credit",
-      amount:
-        netProducerCommission,
-      description:
-        `عمولة المنتج - ${customerName}`,
-      week_start:
-        weekStartText,
-      week_end:
-        weekEndText,
-      is_settled: false,
-    });
-
-    /*
-     * حفظ الحركات المالية
-     */
-
-    const {
-      error: trxError,
-    } = await supabase
-      .from("BalanceTransactions")
-      .insert(transactions);
-
-    if (trxError) {
-      alert(trxError.message);
-      return;
-    }
-
-    /*
-     * تحميل رصيد الكابتن الحالي
-     */
-
-    const {
-      data: captain,
-      error: captainError,
-    } = await supabase
-      .from("Users")
-      .select("wallet_balance")
-      .eq(
-        "id",
-        Number(captainId)
-      )
-      .single();
-
-    if (
-      captainError ||
-      !captain
-    ) {
       alert(
-        "تعذر تحميل رصيد الكابتن"
-      );
-      return;
-    }
-
-    /*
-     * مقدار الخصم:
-     *
-     * عمولة الطلب
-     * +
-     * الأرضية فقط إذا كان الكابتن
-     * فعّالًا وأول طلب له هذا الأسبوع.
-     */
-
-    let deduction =
-      producerCommission;
-
-    if (firstOrderThisWeek) {
-      deduction += 1;
-    }
-
-    /*
-     * تحديث المحفظة
-     *
-     * يسمح بالرصيد السالب.
-     */
-
-    const {
-      error: walletError,
-    } = await supabase
-      .from("Users")
-      .update({
-        wallet_balance:
-          Number(
-            captain.wallet_balance
-          ) - deduction,
-      })
-      .eq(
-        "id",
-        Number(captainId)
+        result.floorApplied
+          ? `تم حفظ الطلب. تم خصم ${Number(result.deduction).toFixed(2)} JD من محفظة الكابتن، شاملة الأرضية الأسبوعية.`
+          : `تم حفظ الطلب. تم خصم ${Number(result.deduction).toFixed(2)} JD من محفظة الكابتن.`
       );
 
-    if (walletError) {
-      alert(walletError.message);
-      return;
+      setCustomerName("");
+      setCustomerPhone("");
+      setProducerId("");
+      setCaptainId("");
+      setAmount("");
+      setOrderType("راكب");
+    } catch (error: any) {
+      alert(error?.message ?? "حدث خطأ أثناء حفظ الطلب");
     }
-
-    alert(
-      firstOrderThisWeek
-        ? "تم حفظ الطلب واحتساب الأرضية الأسبوعية بنجاح"
-        : "تم حفظ الطلب بنجاح"
-    );
-
-    setCustomerName("");
-    setCustomerPhone("");
-    setProducerId("");
-    setCaptainId("");
-    setAmount("");
-    setOrderType("راكب");
   }
 
   return (
