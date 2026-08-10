@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase";
 type User = {
   id: number;
   full_name: string;
+  phone: string | null;
   is_captain: boolean;
   is_producer: boolean;
   status: boolean;
@@ -27,10 +28,10 @@ export default function OrdersPage() {
     admin_commission: 2,
   });
 
-  const [customerName, setCustomerName] = useState("");
-  const [customerPhone, setCustomerPhone] = useState("");
   const [producerId, setProducerId] = useState("");
   const [captainId, setCaptainId] = useState("");
+  const [producerPhone, setProducerPhone] = useState("");
+  const [captainPhone, setCaptainPhone] = useState("");
   const [orderType, setOrderType] = useState("راكب");
   const [amount, setAmount] = useState("");
   const [saving, setSaving] = useState(false);
@@ -100,8 +101,6 @@ export default function OrdersPage() {
     if (saving) return;
 
     if (
-      !customerName.trim() ||
-      !customerPhone.trim() ||
       !producerId ||
       !captainId ||
       !amount
@@ -141,10 +140,6 @@ export default function OrdersPage() {
               "application/json",
           },
           body: JSON.stringify({
-            customerName:
-              customerName.trim(),
-            customerPhone:
-              customerPhone.trim(),
             producerId:
               Number(producerId),
             captainId:
@@ -193,10 +188,10 @@ export default function OrdersPage() {
         );
       }
 
-      setCustomerName("");
-      setCustomerPhone("");
       setProducerId("");
       setCaptainId("");
+      setProducerPhone("");
+      setCaptainPhone("");
       setAmount("");
       setOrderType("راكب");
     } catch (error: any) {
@@ -217,38 +212,22 @@ export default function OrdersPage() {
 
       <div className="grid max-w-4xl grid-cols-1 gap-4 md:grid-cols-2">
 
-        <input
-          className="rounded-lg border p-3"
-          placeholder="اسم العميل"
-          value={customerName}
-          onChange={(e) =>
-            setCustomerName(
-              e.target.value
-            )
-          }
-          disabled={saving}
-        />
-
-        <input
-          className="rounded-lg border p-3"
-          placeholder="رقم الهاتف"
-          value={customerPhone}
-          onChange={(e) =>
-            setCustomerPhone(
-              e.target.value
-            )
-          }
-          disabled={saving}
-        />
+        <div className="rounded-lg border bg-slate-50 p-3">
+          <div className="text-sm font-semibold text-slate-500">رقم هاتف المنتج</div>
+          <div className="mt-1 font-bold">{producerPhone || "اختر المنتج أولاً"}</div>
+        </div>
 
         <select
           className="rounded-lg border p-3"
           value={producerId}
-          onChange={(e) =>
-            setProducerId(
-              e.target.value
-            )
-          }
+          onChange={(e) => {
+            const id = e.target.value;
+            setProducerId(id);
+            const selected = producers.find(
+              (producer) => String(producer.id) === id
+            );
+            setProducerPhone(selected?.phone ?? "");
+          }}
           disabled={saving}
         >
           <option value="">
@@ -270,11 +249,14 @@ export default function OrdersPage() {
         <select
           className="rounded-lg border p-3"
           value={captainId}
-          onChange={(e) =>
-            setCaptainId(
-              e.target.value
-            )
-          }
+          onChange={(e) => {
+            const id = e.target.value;
+            setCaptainId(id);
+            const selected = captains.find(
+              (captain) => String(captain.id) === id
+            );
+            setCaptainPhone(selected?.phone ?? "");
+          }}
           disabled={saving}
         >
           <option value="">
@@ -295,6 +277,11 @@ export default function OrdersPage() {
             )
           )}
         </select>
+
+        <div className="rounded-lg border bg-slate-50 p-3">
+          <div className="text-sm font-semibold text-slate-500">رقم هاتف الكابتن / المستهلك</div>
+          <div className="mt-1 font-bold">{captainPhone || "اختر الكابتن أولاً"}</div>
+        </div>
 
         <select
           className="rounded-lg border p-3"

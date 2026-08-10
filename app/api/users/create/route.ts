@@ -15,8 +15,8 @@ export async function POST(req: Request) {
         vehicle_number: body.vehicle_number,
         status: true,
         is_admin: body.role === "admin",
-        is_captain: body.role === "captain",
-        is_producer: body.role === "producer",
+        is_captain: true,
+        is_producer: true,
       });
 
     if (error) {

@@ -46,13 +46,7 @@ export default function EditUserPage() {
     setVehicleNumber(data.vehicle_number || "");
     setStatus(data.status);
 
-    if (data.is_admin) {
-      setRole("admin");
-    } else if (data.is_producer) {
-      setRole("producer");
-    } else {
-      setRole("captain");
-    }
+    setRole(data.is_admin ? "admin" : "captain");
 
     setLoading(false);
   }
@@ -65,36 +59,37 @@ export default function EditUserPage() {
 
     setSaving(true);
 
-    const result = await supabase
-  .from("Users")
-  .update({
-    full_name: fullName,
-    phone: phone,
-    login_code: loginCode,
-    vehicle_type: vehicleType,
-    vehicle_number: vehicleNumber,
-    status: status,
-    is_admin: false,
-is_captain: true,
-is_producer: true,
-  })
-  .eq("id", params.id)
-  .select();
+    try {
+      const response = await fetch("/api/users/update", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: Number(params.id),
+          full_name: fullName,
+          phone,
+          login_code: loginCode,
+          vehicle_type: vehicleType,
+          vehicle_number: vehicleNumber,
+          status,
+        }),
+      });
 
-console.log(result);
+      const result = await response.json();
 
-const error = result.error;
+      if (!response.ok) {
+        alert(result.error ?? "تعذر تحديث المستخدم");
+        return;
+      }
 
-    setSaving(false);
-
-    if (error) {
-      alert(error.message);
-      return;
+      alert("تم تحديث المستخدم");
+      router.push("/admin/users");
+    } catch (error: any) {
+      alert(error?.message ?? "حدث خطأ أثناء التحديث");
+    } finally {
+      setSaving(false);
     }
-
-    alert("تم تحديث المستخدم");
-
-    router.push("/admin/users");
   }
 
   if (loading) {
