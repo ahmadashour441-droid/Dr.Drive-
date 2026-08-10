@@ -81,9 +81,10 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
+    // اسم ورقم العميل اختياريان
     const customerName = String(
-      body.customerName ?? ""
-    ).trim();
+      body.customerName ?? "عميل"
+    ).trim() || "عميل";
 
     const customerPhone = String(
       body.customerPhone ?? ""
@@ -105,9 +106,11 @@ export async function POST(req: NextRequest) {
       body.amount
     );
 
+    // =========================
+    // التحقق من البيانات
+    // =========================
+
     if (
-      !customerName ||
-      !customerPhone ||
       !Number.isInteger(producerId) ||
       !Number.isInteger(captainId) ||
       !Number.isFinite(amount) ||
@@ -245,37 +248,37 @@ export async function POST(req: NextRequest) {
 
     if (captainIsActive) {
       const {
-  data: floorRows,
-  error: floorError,
-} = await supabase
-  .from("BalanceTransactions")
-  .select(
-    "id, wallet_deducted"
-  )
-  .eq(
-    "user_id",
-    captainId
-  )
-  .eq(
-    "description",
-    "الأرضية الأسبوعية"
-  )
-  .eq(
-    "week_start",
-    weekStartText
-  )
-  .eq(
-    "week_end",
-    weekEndText
-  )
-  .eq(
-    "is_settled",
-    false
-  )
-  .order("id", {
-    ascending: true,
-  })
-  .limit(1);
+        data: floorRows,
+        error: floorError,
+      } = await supabase
+        .from("BalanceTransactions")
+        .select(
+          "id, wallet_deducted"
+        )
+        .eq(
+          "user_id",
+          captainId
+        )
+        .eq(
+          "description",
+          "الأرضية الأسبوعية"
+        )
+        .eq(
+          "week_start",
+          weekStartText
+        )
+        .eq(
+          "week_end",
+          weekEndText
+        )
+        .eq(
+          "is_settled",
+          false
+        )
+        .order("id", {
+          ascending: true,
+        })
+        .limit(1);
 
       if (floorError) {
         return NextResponse.json(
@@ -431,7 +434,7 @@ export async function POST(req: NextRequest) {
           captainId,
 
         order_id:
-          null,
+          order.id,
 
         type:
           "debit",
@@ -514,10 +517,6 @@ export async function POST(req: NextRequest) {
       is_settled:
         false,
 
-      /*
-       * أصبحت مضافة فعليًا
-       * إلى محفظة المنتج.
-       */
       wallet_deducted:
         true,
     });
@@ -656,9 +655,6 @@ export async function POST(req: NextRequest) {
       newProducerWallet ===
         undefined
     ) {
-      /*
-       * نرجع خصم الكابتن.
-       */
       await supabase.rpc(
         "deduct_wallet_balance",
         {
@@ -748,10 +744,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    /*
-     * إذا أنشأنا حركة أرضية جديدة،
-     * نحدد أنها انخصمت فعليًا.
-     */
+    // إذا أنشأنا حركة أرضية جديدة
     if (
       floorApplied &&
       existingFloorId === null
@@ -824,11 +817,11 @@ export async function POST(req: NextRequest) {
     });
 
   } catch (error: any) {
+    console.error(
+      "CREATE ORDER ERROR:",
+      error
+    );
 
-    /*
-     * إذا حدث خطأ بعد خصم الكابتن،
-     * نعيد المبلغ.
-     */
     if (
       captainWalletChanged &&
       captainIdForRollback !== null
@@ -845,10 +838,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    /*
-     * إذا حدث خطأ بعد إضافة المنتج،
-     * نرجع عمولة المنتج.
-     */
     if (
       producerWalletChanged &&
       producerIdForRollback !== null

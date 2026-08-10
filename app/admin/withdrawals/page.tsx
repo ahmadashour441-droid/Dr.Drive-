@@ -1,7 +1,9 @@
 import { supabaseServer } from "@/lib/supabaseServer";
 import { revalidatePath } from "next/cache";
 
-async function updateWithdrawalStatus(formData: FormData) {
+async function updateWithdrawalStatus(
+  formData: FormData
+) {
   "use server";
 
   const requestId = String(
@@ -69,27 +71,45 @@ async function updateWithdrawalStatus(formData: FormData) {
     return;
   }
 
-  // =========================
-  // الرفض
-  // =========================
+  // =========================================================
+  // الموافقة
+  // =========================================================
 
-  if (status === "rejected") {
+  /*
+   * مهم جدًا:
+   *
+   * المبلغ تم خصمه أصلًا من المحفظة
+   * عندما أنشأ المستخدم طلب السحب.
+   *
+   * لذلك عند الموافقة:
+   * لا نخصم أي مبلغ.
+   *
+   * فقط نغير حالة الطلب.
+   */
+
+  if (status === "approved") {
     const {
-      error: rejectError,
+      data: updatedRequest,
+      error: approveError,
     } = await supabaseServer
       .from("WithdrawalRequests")
       .update({
-        status: "rejected",
+        status: "approved",
         processed_at:
           new Date().toISOString(),
       })
       .eq("id", requestId)
-      .eq("status", "pending");
+      .eq("status", "pending")
+      .select("id")
+      .maybeSingle();
 
-    if (rejectError) {
+    if (
+      approveError ||
+      !updatedRequest
+    ) {
       console.error(
-        "Withdrawal rejection error:",
-        rejectError
+        "Withdrawal approval error:",
+        approveError
       );
 
       return;
@@ -107,69 +127,27 @@ async function updateWithdrawalStatus(formData: FormData) {
       "/dashboard/accounting"
     );
 
-    return;
-  }
-
-  // =========================
-  // الموافقة
-  // =========================
-
-  const {
-    data: user,
-    error: userError,
-  } = await supabaseServer
-    .from("Users")
-    .select(
-      "id, full_name, wallet_balance"
-    )
-    .eq("id", userId)
-    .single();
-
-  if (
-    userError ||
-    !user
-  ) {
-    console.error(
-      "User not found:",
-      userError
+    revalidatePath(
+      "/dashboard"
     );
 
     return;
   }
 
-  const walletBalance = Number(
-    user.wallet_balance ?? 0
-  );
+  // =========================================================
+  // الرفض
+  // =========================================================
 
-  // =========================
-  // التأكد من توفر الرصيد
-  // =========================
-
-  if (
-    walletBalance < amount
-  ) {
-    console.error(
-      `الرصيد غير كافٍ. الرصيد: ${walletBalance}, السحب: ${amount}`
-    );
-
-    return;
-  }
-
-  // =========================
-  // خصم المحفظة
-  //
-  // deduct_wallet_balance
-  // تقوم بـ:
-  //
-  // wallet_balance =
-  // wallet_balance - amount
-  // =========================
+  /*
+   * بما أن المبلغ تم خصمه عند إنشاء طلب السحب،
+   * يجب إرجاعه للمحفظة عند الرفض.
+   */
 
   const {
-    data: newWalletBalance,
-    error: walletError,
+    data: restoredWalletBalance,
+    error: restoreWalletError,
   } = await supabaseServer.rpc(
-    "deduct_wallet_balance",
+    "add_wallet_balance",
     {
       p_user_id: userId,
       p_amount: amount,
@@ -177,67 +155,68 @@ async function updateWithdrawalStatus(formData: FormData) {
   );
 
   if (
-    walletError ||
-    newWalletBalance === null ||
-    newWalletBalance === undefined
+    restoreWalletError ||
+    restoredWalletBalance === null ||
+    restoredWalletBalance === undefined
   ) {
     console.error(
-      "Wallet deduction error:",
-      walletError
+      "Wallet restore error:",
+      restoreWalletError
     );
 
     return;
   }
 
-  const finalWalletBalance =
-    Number(
-      newWalletBalance
-    );
-
   // =========================
-  // تسجيل حركة السحب
+  // تسجيل حركة الإرجاع
   // =========================
 
   const {
-    data: transaction,
+    data: reversalTransaction,
     error:
-      transactionError,
+      reversalTransactionError,
   } = await supabaseServer
     .from(
       "BalanceTransactions"
     )
     .insert({
       user_id: userId,
+
       order_id: null,
-      type: "debit",
+
+      type: "credit",
+
       amount: amount,
+
       description:
-        "سحب مستحقات",
+        `إرجاع مبلغ طلب السحب المرفوض #${requestId}`,
+
       is_settled: false,
+
       wallet_deducted: true,
     })
     .select("id")
     .single();
 
-  // =========================
-  // إذا فشل تسجيل الحركة
-  // نرجع المبلغ للمحفظة
-  // =========================
+  /*
+   * إذا فشل تسجيل حركة الإرجاع،
+   * نرجع المحفظة للحالة السابقة.
+   */
 
   if (
-    transactionError ||
-    !transaction
+    reversalTransactionError ||
+    !reversalTransaction
   ) {
     console.error(
-      "Withdrawal transaction error:",
-      transactionError
+      "Reversal transaction error:",
+      reversalTransactionError
     );
 
     await supabaseServer.rpc(
       "deduct_wallet_balance",
       {
         p_user_id: userId,
-        p_amount: -amount,
+        p_amount: amount,
       }
     );
 
@@ -245,19 +224,19 @@ async function updateWithdrawalStatus(formData: FormData) {
   }
 
   // =========================
-  // تحديث حالة طلب السحب
+  // تحديث طلب السحب إلى مرفوض
   // =========================
 
   const {
-    data: updatedRequest,
-    error:
-      updateError,
+    data: rejectedRequest,
+    error: rejectError,
   } = await supabaseServer
     .from(
       "WithdrawalRequests"
     )
     .update({
-      status: "approved",
+      status: "rejected",
+
       processed_at:
         new Date().toISOString(),
     })
@@ -272,21 +251,22 @@ async function updateWithdrawalStatus(formData: FormData) {
     .select("id")
     .maybeSingle();
 
-  // =========================
-  // إذا فشل تحديث الطلب
-  // نرجع كل شيء
-  // =========================
+  /*
+   * إذا فشل تغيير الحالة:
+   * نحذف حركة الإرجاع
+   * ونسحب المبلغ الذي أرجعناه
+   * حتى ترجع العملية كما كانت.
+   */
 
   if (
-    updateError ||
-    !updatedRequest
+    rejectError ||
+    !rejectedRequest
   ) {
     console.error(
-      "Withdrawal approval update error:",
-      updateError
+      "Withdrawal rejection update error:",
+      rejectError
     );
 
-    // حذف حركة السحب
     await supabaseServer
       .from(
         "BalanceTransactions"
@@ -294,15 +274,14 @@ async function updateWithdrawalStatus(formData: FormData) {
       .delete()
       .eq(
         "id",
-        transaction.id
+        reversalTransaction.id
       );
 
-    // إعادة المبلغ للمحفظة
     await supabaseServer.rpc(
       "deduct_wallet_balance",
       {
         p_user_id: userId,
-        p_amount: -amount,
+        p_amount: amount,
       }
     );
 
@@ -331,11 +310,17 @@ async function updateWithdrawalStatus(formData: FormData) {
 }
 
 export default async function AdminWithdrawalsPage() {
+  // =========================
+  // جلب طلبات السحب
+  // =========================
+
   const {
     data: requests,
     error,
   } = await supabaseServer
-    .from("WithdrawalRequests")
+    .from(
+      "WithdrawalRequests"
+    )
     .select("*")
     .order(
       "created_at",
@@ -355,7 +340,7 @@ export default async function AdminWithdrawalsPage() {
     requests ?? [];
 
   // =========================
-  // جلب أسماء الكباتن
+  // جلب المستخدمين
   // =========================
 
   const userIds = [
@@ -398,6 +383,10 @@ export default async function AdminWithdrawalsPage() {
     }
   }
 
+  // =========================
+  // الإحصائيات
+  // =========================
+
   const pendingCount =
     allRequests.filter(
       (request: any) =>
@@ -426,19 +415,30 @@ export default async function AdminWithdrawalsPage() {
     >
       <div className="mx-auto max-w-[1400px]">
 
+        {/* =========================
+            HEADER
+        ========================= */}
+
         <div className="mb-8">
+
           <h1 className="text-3xl font-black">
             طلبات سحب المستحقات
           </h1>
 
           <p className="mt-2 text-gray-500">
-            مراجعة وإدارة طلبات سحب المستحقات الخاصة بالكباتن.
+            مراجعة وإدارة طلبات سحب المستحقات.
           </p>
+
         </div>
+
+        {/* =========================
+            STATISTICS
+        ========================= */}
 
         <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
 
           <div className="rounded-2xl bg-white p-5 shadow">
+
             <p className="text-sm font-bold text-gray-500">
               قيد المراجعة
             </p>
@@ -446,9 +446,11 @@ export default async function AdminWithdrawalsPage() {
             <h2 className="mt-2 text-3xl font-black text-yellow-600">
               {pendingCount}
             </h2>
+
           </div>
 
           <div className="rounded-2xl bg-white p-5 shadow">
+
             <p className="text-sm font-bold text-gray-500">
               تمت الموافقة
             </p>
@@ -456,9 +458,11 @@ export default async function AdminWithdrawalsPage() {
             <h2 className="mt-2 text-3xl font-black text-green-600">
               {approvedCount}
             </h2>
+
           </div>
 
           <div className="rounded-2xl bg-white p-5 shadow">
+
             <p className="text-sm font-bold text-gray-500">
               مرفوض
             </p>
@@ -466,19 +470,27 @@ export default async function AdminWithdrawalsPage() {
             <h2 className="mt-2 text-3xl font-black text-red-600">
               {rejectedCount}
             </h2>
+
           </div>
 
         </div>
 
+        {/* =========================
+            REQUESTS TABLE
+        ========================= */}
+
         <div className="overflow-hidden rounded-2xl bg-white shadow">
 
           <div className="border-b p-5">
+
             <h2 className="text-xl font-black">
               جميع طلبات السحب
             </h2>
+
           </div>
 
-          {allRequests.length === 0 ? (
+          {allRequests.length ===
+          0 ? (
 
             <div className="p-10 text-center text-gray-500">
               لا توجد طلبات سحب حتى الآن.
@@ -495,7 +507,7 @@ export default async function AdminWithdrawalsPage() {
                   <tr>
 
                     <th className="p-4 text-right">
-                      الكابتن
+                      المستخدم
                     </th>
 
                     <th className="p-4 text-right">
@@ -536,11 +548,13 @@ export default async function AdminWithdrawalsPage() {
                           className="border-t"
                         >
 
+                          {/* USER */}
+
                           <td className="p-4">
 
                             <div className="font-black">
                               {user?.full_name ??
-                                "كابتن غير معروف"}
+                                "مستخدم غير معروف"}
                             </div>
 
                             <div className="mt-1 text-xs text-gray-400">
@@ -551,6 +565,8 @@ export default async function AdminWithdrawalsPage() {
                             </div>
 
                           </td>
+
+                          {/* AMOUNT */}
 
                           <td className="p-4">
 
@@ -563,6 +579,8 @@ export default async function AdminWithdrawalsPage() {
                             </span>
 
                           </td>
+
+                          {/* DATE */}
 
                           <td className="p-4 text-gray-500">
 
@@ -585,6 +603,8 @@ export default async function AdminWithdrawalsPage() {
                               : "-"}
 
                           </td>
+
+                          {/* STATUS */}
 
                           <td className="p-4">
 
@@ -611,12 +631,16 @@ export default async function AdminWithdrawalsPage() {
 
                           </td>
 
+                          {/* ACTION */}
+
                           <td className="p-4">
 
                             {request.status ===
                             "pending" ? (
 
                               <div className="flex flex-wrap gap-2">
+
+                                {/* APPROVE */}
 
                                 <form
                                   action={
@@ -646,6 +670,8 @@ export default async function AdminWithdrawalsPage() {
                                   </button>
 
                                 </form>
+
+                                {/* REJECT */}
 
                                 <form
                                   action={
@@ -698,7 +724,6 @@ export default async function AdminWithdrawalsPage() {
               </table>
 
             </div>
-
           )}
 
         </div>

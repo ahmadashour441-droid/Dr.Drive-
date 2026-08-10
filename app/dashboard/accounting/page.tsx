@@ -93,48 +93,64 @@ export default async function CaptainAccountingPage() {
   const totalOrders =
     allOrders.length;
 
-  /*
-   * الأرباح = قيمة الطلبات كاملة.
-   *
-   * لا نطرح:
-   * - عمولة الكابتن
-   * - الأرضية
-   * - الشحن
-   * - خصومات المحفظة
-   */
   const totalEarnings =
     allOrders.reduce(
       (sum: number, order: any) =>
-        sum + Number(order.amount ?? 0),
+        sum +
+        Number(
+          order.amount ?? 0
+        ),
       0
     );
 
+  /* =========================
+     WALLET
+  ========================= */
+
   /*
+   * رصيد المحفظة هو المصدر الحقيقي
+   * للمستحقات المتاحة.
+   *
+   * للمنتج:
+   * wallet_balance = المبلغ المتاح للسحب.
+   *
    * للكابتن:
-   *
-   * العمولة والأرضية يتم خصمهما من
-   * wallet_balance لحظة تسجيل الطلب.
-   *
-   * لذلك لا نعتبر captain_due مستحقًا
-   * قابلًا للسحب مرة ثانية.
-   *
-   * المستحق غير المسدد الذي يظهر للكابتن
-   * هو فقط الرصيد السالب في المحفظة.
+   * wallet_balance يبقى كما هو
+   * ويستخدم للتشغيل والخصومات.
    */
+
   const walletBalance =
     Number(
       currentUser.wallet_balance ?? 0
     );
 
-  const unpaidCaptainDue =
-    isCaptain
-      ? Math.max(0, -walletBalance)
+  const producerDue =
+    isProducer
+      ? Math.max(
+          0,
+          walletBalance
+        )
       : 0;
 
   /*
-   * عدد طلبات الأسبوع الحالي غير المغلقة.
-   * هذا للعرض فقط ولا يدخل في الحساب المالي.
+   * للكابتن:
+   * المستحقات غير المسددة تبقى
+   * مرتبطة بالرصيد السالب.
    */
+
+  const unpaidCaptainDue =
+    isCaptain
+      ? Math.max(
+          0,
+          -walletBalance
+        )
+      : 0;
+
+  /*
+   * عدد الطلبات غير المغلقة.
+   * للعرض فقط.
+   */
+
   const unpaidOrders =
     isCaptain
       ? allOrders.filter(
@@ -143,67 +159,17 @@ export default async function CaptainAccountingPage() {
         ).length
       : 0;
 
-  /* =========================
-     PRODUCER WITHDRAWAL
-  ========================= */
-
   /*
-   * المنتج:
-   * مستحقاته هي جميع حركات credit.
-   *
-   * إغلاق الأسبوع لا يلغي المستحق.
-   * is_settled فقط يحدد حالة إغلاق الفترة.
+   * المنتج يسحب مباشرة من wallet_balance.
+   * لذلك لا نطرح الطلبات المعلقة من الرصيد
+   * مرة ثانية.
    */
-  const producerDue =
-    isProducer
-      ? allTransactions
-          .filter(
-            (trx: any) =>
-              trx.type === "credit"
-          )
-          .reduce(
-            (
-              sum: number,
-              trx: any
-            ) =>
-              sum +
-              Number(
-                trx.amount ?? 0
-              ),
-            0
-          )
-      : 0;
-
-  /*
-   * pending + approved = مبالغ محجوزة.
-   *
-   * الطلب المرفوض لا يحجز شيئًا.
-   */
-  const reservedWithdrawals =
-    allWithdrawals
-      .filter(
-        (request: any) =>
-          request.status === "pending" ||
-          request.status === "approved"
-      )
-      .reduce(
-        (
-          sum: number,
-          request: any
-        ) =>
-          sum +
-          Number(
-            request.amount ?? 0
-          ),
-        0
-      );
 
   const availableForWithdrawal =
     isProducer
       ? Math.max(
           0,
-          producerDue -
-            reservedWithdrawals
+          walletBalance
         )
       : 0;
 
@@ -233,27 +199,48 @@ export default async function CaptainAccountingPage() {
         session.value
       );
 
-    const { data: dbUser } =
-      await supabase
-        .from("Users")
-        .select(
-          "is_producer, is_captain"
-        )
-        .eq(
-          "id",
-          currentUser.id
-        )
-        .single();
+    /* =========================
+       التأكد من المستخدم
+    ========================= */
+
+    const {
+      data: dbUser,
+      error: userError,
+    } = await supabase
+      .from("Users")
+      .select(
+        "id, is_producer, is_captain, wallet_balance"
+      )
+      .eq(
+        "id",
+        currentUser.id
+      )
+      .single();
+
+    if (
+      userError ||
+      !dbUser
+    ) {
+      redirect(
+        "/dashboard/accounting?withdrawal=error"
+      );
+    }
 
     /*
-     * الكابتن لا يسحب من المحفظة.
-     * السحب مخصص لمستحقات المنتج.
+     * السحب متاح للمنتج فقط.
      */
-    if (!dbUser?.is_producer) {
+
+    if (
+      !dbUser.is_producer
+    ) {
       redirect(
         "/dashboard/accounting?withdrawal=not-available"
       );
     }
+
+    /* =========================
+       قراءة المبلغ
+    ========================= */
 
     const amount = Number(
       formData.get("amount")
@@ -268,119 +255,202 @@ export default async function CaptainAccountingPage() {
       );
     }
 
-    /*
-     * إعادة قراءة جميع مستحقات المنتج
-     * من السيرفر حتى لا نعتمد على أرقام الصفحة.
-     */
-    const {
-      data: producerTransactions,
-      error: transactionsError,
-    } = await supabase
-      .from("BalanceTransactions")
-      .select("type, amount")
-      .eq(
-        "user_id",
-        currentUser.id
-      )
-      .eq(
-        "type",
-        "credit"
+    const withdrawalAmount =
+      Number(
+        amount.toFixed(3)
       );
 
-    if (transactionsError) {
-      redirect(
-        "/dashboard/accounting?withdrawal=error"
-      );
-    }
+    /* =========================
+       قراءة رصيد المحفظة الحالي
+    ========================= */
 
-    const totalDue =
-      producerTransactions?.reduce(
-        (
-          sum: number,
-          trx: any
-        ) =>
-          sum +
-          Number(
-            trx.amount ?? 0
-          ),
-        0
-      ) ?? 0;
-
-    /*
-     * المبالغ المحجوزة حاليًا.
-     */
-    const {
-      data: existingWithdrawals,
-    } = await supabase
-      .from("WithdrawalRequests")
-      .select(
-        "amount, status"
-      )
-      .eq(
-        "user_id",
-        currentUser.id
-      )
-      .in(
-        "status",
-        ["pending", "approved"]
+    const walletBefore =
+      Number(
+        dbUser.wallet_balance ?? 0
       );
 
-    const reserved =
-      existingWithdrawals?.reduce(
-        (
-          sum: number,
-          request: any
-        ) =>
-          sum +
-          Number(
-            request.amount ?? 0
-          ),
-        0
-      ) ?? 0;
-
-    const available =
-      Math.max(
-        0,
-        totalDue - reserved
-      );
-
-    if (amount > available) {
+    if (
+      withdrawalAmount >
+      walletBefore
+    ) {
       redirect(
         "/dashboard/accounting?withdrawal=insufficient"
       );
     }
 
-    /*
-     * إنشاء طلب السحب فقط.
-     *
-     * لا نخصم wallet_balance.
-     */
-    const { error } =
-      await supabase
-        .from(
-          "WithdrawalRequests"
-        )
-        .insert({
-          user_id:
-            currentUser.id,
-          amount:
-            Number(
-              amount.toFixed(3)
-            ),
-          status:
-            "pending",
-        });
+    /* =========================
+       خصم المبلغ من المحفظة
+    ========================= */
 
-    if (error) {
+    const {
+      data: newWalletBalance,
+      error:
+        walletError,
+    } = await supabase.rpc(
+      "deduct_wallet_balance",
+      {
+        p_user_id:
+          currentUser.id,
+
+        p_amount:
+          withdrawalAmount,
+      }
+    );
+
+    if (
+      walletError ||
+      newWalletBalance ===
+        null ||
+      newWalletBalance ===
+        undefined
+    ) {
       console.error(
-        "Withdrawal request error:",
-        error
+        "Withdrawal wallet error:",
+        walletError
       );
 
       redirect(
         "/dashboard/accounting?withdrawal=error"
       );
     }
+
+    /* =========================
+       إنشاء طلب السحب
+    ========================= */
+
+    const {
+      data: withdrawal,
+      error:
+        withdrawalError,
+    } = await supabase
+      .from(
+        "WithdrawalRequests"
+      )
+      .insert({
+        user_id:
+          currentUser.id,
+
+        amount:
+          withdrawalAmount,
+
+        status:
+          "pending",
+      })
+      .select()
+      .single();
+
+    /*
+     * إذا فشل إنشاء طلب السحب
+     * نرجع المبلغ للمحفظة.
+     */
+
+    if (
+      withdrawalError ||
+      !withdrawal
+    ) {
+      await supabase.rpc(
+        "add_wallet_balance",
+        {
+          p_user_id:
+            currentUser.id,
+
+          p_amount:
+            withdrawalAmount,
+        }
+      );
+
+      console.error(
+        "Withdrawal request error:",
+        withdrawalError
+      );
+
+      redirect(
+        "/dashboard/accounting?withdrawal=error"
+      );
+    }
+
+    /* =========================
+       تسجيل الحركة المالية
+    ========================= */
+
+    const {
+      error:
+        transactionError,
+    } = await supabase
+      .from(
+        "BalanceTransactions"
+      )
+      .insert({
+        user_id:
+          currentUser.id,
+
+        order_id:
+          null,
+
+        type:
+          "debit",
+
+        amount:
+          withdrawalAmount,
+
+        description:
+          `طلب سحب #${withdrawal.id}`,
+
+        week_start:
+          null,
+
+        week_end:
+          null,
+
+        is_settled:
+          false,
+
+        wallet_deducted:
+          true,
+      });
+
+    /*
+     * إذا فشل تسجيل الحركة،
+     * نرجع المبلغ ونحذف طلب السحب.
+     */
+
+    if (
+      transactionError
+    ) {
+      await supabase.rpc(
+        "add_wallet_balance",
+        {
+          p_user_id:
+            currentUser.id,
+
+          p_amount:
+            withdrawalAmount,
+        }
+      );
+
+      await supabase
+        .from(
+          "WithdrawalRequests"
+        )
+        .delete()
+        .eq(
+          "id",
+          withdrawal.id
+        );
+
+      console.error(
+        "Withdrawal transaction error:",
+        transactionError
+      );
+
+      redirect(
+        "/dashboard/accounting?withdrawal=error"
+      );
+    }
+
+    /* =========================
+       نجاح
+    ========================= */
 
     redirect(
       "/dashboard/accounting?withdrawal=success"
@@ -394,6 +464,10 @@ export default async function CaptainAccountingPage() {
     >
       <div className="mx-auto max-w-[1400px]">
 
+        {/* =========================
+            HEADER
+        ========================= */}
+
         <div className="mb-8">
           <h1 className="text-3xl font-black">
             كشف الحساب
@@ -403,6 +477,10 @@ export default async function CaptainAccountingPage() {
             جميع مستحقاتك وطلباتك.
           </p>
         </div>
+
+        {/* =========================
+            STATISTICS
+        ========================= */}
 
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
 
@@ -426,7 +504,12 @@ export default async function CaptainAccountingPage() {
             </h2>
           </div>
 
+          {/* =========================
+              المستحقات
+          ========================= */}
+
           <div className="rounded-xl bg-white p-6 shadow">
+
             <p className="text-gray-500">
               {isProducer
                 ? "المستحقات غير المسحوبة"
@@ -442,9 +525,7 @@ export default async function CaptainAccountingPage() {
             >
               {isProducer
                 ? producerDue.toFixed(3)
-                : unpaidCaptainDue.toFixed(
-                    3
-                  )}{" "}
+                : unpaidCaptainDue.toFixed(3)}{" "}
               JD
             </h2>
 
@@ -454,9 +535,15 @@ export default async function CaptainAccountingPage() {
                   {unpaidOrders} طلب غير مسدد
                 </p>
               )}
+
           </div>
 
+          {/* =========================
+              WALLET
+          ========================= */}
+
           <div className="rounded-xl bg-white p-6 shadow">
+
             <p className="text-gray-500">
               رصيد المحفظة
             </p>
@@ -471,26 +558,39 @@ export default async function CaptainAccountingPage() {
             >
               {walletBalance.toFixed(3)} JD
             </h2>
+
+            {isProducer && (
+              <p className="mt-2 text-sm text-gray-400">
+                هذا هو المبلغ المتاح للسحب.
+              </p>
+            )}
+
           </div>
 
         </div>
+
+        {/* =========================
+            WITHDRAWAL
+        ========================= */}
 
         <div className="mt-8 rounded-2xl bg-gradient-to-br from-[#102F59] to-[#071E3D] p-6 text-white shadow-xl">
 
           <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
 
             <div>
+
               <h2 className="text-2xl font-black">
                 طلب سحب المستحقات
               </h2>
 
               <p className="mt-2 text-sm text-white/70">
                 {isProducer
-                  ? "يمكنك طلب سحب مستحقاتك المالية."
-                  : "الكابتن لا يسحب من المحفظة؛ المحفظة مخصصة لرصيد التشغيل والخصومات."}
+                  ? "السحب يتم مباشرة من رصيد محفظتك."
+                  : "الكابتن لا يسحب من المحفظة."}
               </p>
 
               <div className="mt-5">
+
                 <p className="text-sm text-white/60">
                   المتاح للسحب
                 </p>
@@ -507,7 +607,9 @@ export default async function CaptainAccountingPage() {
                     JD
                   </span>
                 </div>
+
               </div>
+
             </div>
 
             <form
@@ -561,7 +663,7 @@ export default async function CaptainAccountingPage() {
                 availableForWithdrawal <=
                   0 && (
                   <p className="mt-3 text-sm font-bold text-red-300">
-                    لا يوجد مستحقات متاحة للسحب حالياً.
+                    لا يوجد رصيد متاح للسحب حالياً.
                   </p>
                 )}
 
@@ -576,13 +678,19 @@ export default async function CaptainAccountingPage() {
           </div>
         </div>
 
+        {/* =========================
+            WITHDRAWALS
+        ========================= */}
+
         {allWithdrawals.length > 0 && (
           <div className="mt-8 overflow-hidden rounded-xl bg-white shadow">
 
             <div className="border-b p-5">
+
               <h2 className="text-xl font-black">
                 طلبات السحب السابقة
               </h2>
+
             </div>
 
             <div className="overflow-x-auto">
@@ -590,7 +698,9 @@ export default async function CaptainAccountingPage() {
               <table className="min-w-[800px] w-full">
 
                 <thead className="bg-slate-100">
+
                   <tr>
+
                     <th className="p-4 text-right">
                       المبلغ
                     </th>
@@ -602,7 +712,9 @@ export default async function CaptainAccountingPage() {
                     <th className="p-4 text-right">
                       التاريخ
                     </th>
+
                   </tr>
+
                 </thead>
 
                 <tbody>
@@ -647,6 +759,7 @@ export default async function CaptainAccountingPage() {
                         </td>
 
                         <td className="p-4 text-gray-500">
+
                           {new Intl.DateTimeFormat(
                             "ar-JO",
                             {
@@ -662,6 +775,7 @@ export default async function CaptainAccountingPage() {
                               request.created_at
                             )
                           )}
+
                         </td>
 
                       </tr>
@@ -676,9 +790,14 @@ export default async function CaptainAccountingPage() {
           </div>
         )}
 
+        {/* =========================
+            ORDERS
+        ========================= */}
+
         <div className="mt-8 overflow-hidden rounded-xl bg-white shadow">
 
           <div className="border-b p-5">
+
             <h2 className="text-xl font-black">
               الطلبات
             </h2>
@@ -687,6 +806,7 @@ export default async function CaptainAccountingPage() {
               جميع الطلبات الحالية والسابقة.
               إغلاق الأسبوع لا يحذف الطلبات.
             </p>
+
           </div>
 
           <div className="overflow-x-auto">
@@ -696,6 +816,7 @@ export default async function CaptainAccountingPage() {
               <thead className="bg-slate-100">
 
                 <tr>
+
                   <th className="p-4 text-right">
                     #
                   </th>
@@ -721,6 +842,7 @@ export default async function CaptainAccountingPage() {
                   <th className="p-4 text-right">
                     الأسبوع
                   </th>
+
                 </tr>
 
               </thead>
@@ -769,6 +891,7 @@ export default async function CaptainAccountingPage() {
                       </td>
 
                       <td className="p-4">
+
                         {order.is_settled ? (
                           <span className="font-bold text-green-600">
                             تم إغلاق الأسبوع
@@ -778,6 +901,7 @@ export default async function CaptainAccountingPage() {
                             الأسبوع الحالي
                           </span>
                         )}
+
                       </td>
 
                       <td className="p-4">
@@ -788,25 +912,35 @@ export default async function CaptainAccountingPage() {
                   )
                 )}
 
-                {allOrders.length === 0 && (
+                {allOrders.length ===
+                  0 && (
                   <tr>
+
                     <td
                       colSpan={6}
                       className="p-10 text-center text-gray-500"
                     >
                       لا توجد طلبات.
                     </td>
+
                   </tr>
                 )}
 
               </tbody>
+
             </table>
+
           </div>
         </div>
+
+        {/* =========================
+            FINANCIAL TRANSACTIONS
+        ========================= */}
 
         <div className="mt-8 overflow-hidden rounded-xl bg-white shadow">
 
           <div className="border-b p-5">
+
             <h2 className="text-xl font-black">
               العمليات المالية
             </h2>
@@ -814,6 +948,7 @@ export default async function CaptainAccountingPage() {
             <p className="mt-1 text-sm text-gray-500">
               جميع الحركات المسجلة على الحساب.
             </p>
+
           </div>
 
           <div className="overflow-x-auto">
@@ -823,6 +958,7 @@ export default async function CaptainAccountingPage() {
               <thead className="bg-slate-100">
 
                 <tr>
+
                   <th className="p-4 text-right">
                     التاريخ
                   </th>
@@ -842,6 +978,7 @@ export default async function CaptainAccountingPage() {
                   <th className="p-4 text-right">
                     الأسبوع
                   </th>
+
                 </tr>
 
               </thead>
@@ -856,6 +993,7 @@ export default async function CaptainAccountingPage() {
                     >
 
                       <td className="p-4 text-gray-500">
+
                         {new Intl.DateTimeFormat(
                           "ar-JO",
                           {
@@ -871,6 +1009,7 @@ export default async function CaptainAccountingPage() {
                             trx.created_at
                           )
                         )}
+
                       </td>
 
                       <td className="p-4">
@@ -891,10 +1030,12 @@ export default async function CaptainAccountingPage() {
                       </td>
 
                       <td className="p-4 font-bold">
+
                         {Number(
                           trx.amount ?? 0
                         ).toFixed(3)}{" "}
                         JD
+
                       </td>
 
                       <td className="p-4">
@@ -909,18 +1050,21 @@ export default async function CaptainAccountingPage() {
                 {allTransactions.length ===
                   0 && (
                   <tr>
+
                     <td
                       colSpan={5}
                       className="p-10 text-center text-gray-500"
                     >
                       لا توجد عمليات مالية.
                     </td>
+
                   </tr>
                 )}
 
               </tbody>
 
             </table>
+
           </div>
         </div>
 
