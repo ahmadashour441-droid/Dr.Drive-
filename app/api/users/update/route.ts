@@ -109,8 +109,6 @@ export async function POST(req: NextRequest) {
       orderId <= 0 ||
       !Number.isInteger(producerId) ||
       !Number.isInteger(captainId) ||
-      !customerName ||
-      !customerPhone ||
       !Number.isFinite(amount) ||
       amount <= 0
     ) {
