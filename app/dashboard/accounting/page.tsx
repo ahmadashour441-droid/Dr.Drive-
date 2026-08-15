@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { supabaseServer } from "@/lib/supabaseServer";
 
 export default async function CaptainAccountingPage() {
   const cookieStore = await cookies();
@@ -17,7 +17,7 @@ export default async function CaptainAccountingPage() {
      CURRENT USER
   ========================= */
 
-  const { data: currentUser } = await supabase
+  const { data: currentUser } = await supabaseServer
     .from("Users")
     .select(
       "id, full_name, is_captain, is_producer, wallet_balance"
@@ -41,7 +41,7 @@ export default async function CaptainAccountingPage() {
      ORDERS
   ========================= */
 
-  const { data: orders } = await supabase
+  const { data: orders } = await supabaseServer
     .from("Orders")
     .select("*")
     .eq(
@@ -59,7 +59,7 @@ export default async function CaptainAccountingPage() {
   ========================= */
 
   const { data: withdrawalRequests } =
-    await supabase
+    await supabaseServer
       .from("WithdrawalRequests")
       .select("*")
       .eq("user_id", user.id)
@@ -72,7 +72,7 @@ export default async function CaptainAccountingPage() {
   ========================= */
 
   const { data: balanceTransactions } =
-    await supabase
+    await supabaseServer
       .from("BalanceTransactions")
       .select("*")
       .eq("user_id", user.id)
@@ -206,7 +206,7 @@ export default async function CaptainAccountingPage() {
     const {
       data: dbUser,
       error: userError,
-    } = await supabase
+    } = await supabaseServer
       .from("Users")
       .select(
         "id, is_producer, is_captain, wallet_balance"
@@ -286,7 +286,7 @@ export default async function CaptainAccountingPage() {
       data: newWalletBalance,
       error:
         walletError,
-    } = await supabase.rpc(
+    } = await supabaseServer.rpc(
       "deduct_wallet_balance",
       {
         p_user_id:
@@ -322,7 +322,7 @@ export default async function CaptainAccountingPage() {
       data: withdrawal,
       error:
         withdrawalError,
-    } = await supabase
+    } = await supabaseServer
       .from(
         "WithdrawalRequests"
       )
@@ -348,7 +348,7 @@ export default async function CaptainAccountingPage() {
       withdrawalError ||
       !withdrawal
     ) {
-      await supabase.rpc(
+      await supabaseServer.rpc(
         "add_wallet_balance",
         {
           p_user_id:
@@ -376,7 +376,7 @@ export default async function CaptainAccountingPage() {
     const {
       error:
         transactionError,
-    } = await supabase
+    } = await supabaseServer
       .from(
         "BalanceTransactions"
       )
@@ -417,7 +417,7 @@ export default async function CaptainAccountingPage() {
     if (
       transactionError
     ) {
-      await supabase.rpc(
+      await supabaseServer.rpc(
         "add_wallet_balance",
         {
           p_user_id:
@@ -428,7 +428,7 @@ export default async function CaptainAccountingPage() {
         }
       );
 
-      await supabase
+      await supabaseServer
         .from(
           "WithdrawalRequests"
         )

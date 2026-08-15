@@ -14,9 +14,7 @@ async function updateWithdrawalStatus(
     formData.get("status") ?? ""
   );
 
-  if (!requestId) {
-    return;
-  }
+  if (!requestId) return;
 
   if (
     status !== "approved" &&
@@ -72,29 +70,26 @@ async function updateWithdrawalStatus(
   }
 
   // =========================================================
-  // الموافقة
+  // الرفض
   // =========================================================
 
   /*
-   * مهم جدًا:
+   * عند الرفض:
    *
-   * المبلغ تم خصمه أصلًا من المحفظة
-   * عندما أنشأ المستخدم طلب السحب.
+   * لا نخصم ولا نضيف أي شيء للمحفظة.
    *
-   * لذلك عند الموافقة:
-   * لا نخصم أي مبلغ.
-   *
-   * فقط نغير حالة الطلب.
+   * لأن طلب السحب لم يكن قد خصم من المحفظة
+   * عند إنشائه.
    */
 
-  if (status === "approved") {
+  if (status === "rejected") {
     const {
-      data: updatedRequest,
-      error: approveError,
+      data: rejectedRequest,
+      error: rejectError,
     } = await supabaseServer
       .from("WithdrawalRequests")
       .update({
-        status: "approved",
+        status: "rejected",
         processed_at:
           new Date().toISOString(),
       })
@@ -104,12 +99,12 @@ async function updateWithdrawalStatus(
       .maybeSingle();
 
     if (
-      approveError ||
-      !updatedRequest
+      rejectError ||
+      !rejectedRequest
     ) {
       console.error(
-        "Withdrawal approval error:",
-        approveError
+        "Withdrawal rejection error:",
+        rejectError
       );
 
       return;
@@ -135,19 +130,20 @@ async function updateWithdrawalStatus(
   }
 
   // =========================================================
-  // الرفض
+  // الموافقة
   // =========================================================
 
   /*
-   * بما أن المبلغ تم خصمه عند إنشاء طلب السحب،
-   * يجب إرجاعه للمحفظة عند الرفض.
+   * عند الموافقة:
+   *
+   * نخصم المبلغ من محفظة المستخدم.
    */
 
   const {
-    data: restoredWalletBalance,
-    error: restoreWalletError,
+    data: newWalletBalance,
+    error: walletError,
   } = await supabaseServer.rpc(
-    "add_wallet_balance",
+    "deduct_wallet_balance",
     {
       p_user_id: userId,
       p_amount: amount,
@@ -155,68 +151,59 @@ async function updateWithdrawalStatus(
   );
 
   if (
-    restoreWalletError ||
-    restoredWalletBalance === null ||
-    restoredWalletBalance === undefined
+    walletError ||
+    newWalletBalance === null ||
+    newWalletBalance === undefined
   ) {
     console.error(
-      "Wallet restore error:",
-      restoreWalletError
+      "Withdrawal wallet deduction error:",
+      walletError
     );
 
     return;
   }
 
   // =========================
-  // تسجيل حركة الإرجاع
+  // تسجيل حركة الخصم
   // =========================
 
   const {
-    data: reversalTransaction,
-    error:
-      reversalTransactionError,
+    data: transaction,
+    error: transactionError,
   } = await supabaseServer
-    .from(
-      "BalanceTransactions"
-    )
+    .from("BalanceTransactions")
     .insert({
       user_id: userId,
-
       order_id: null,
-
-      type: "credit",
-
+      type: "debit",
       amount: amount,
-
       description:
-        `إرجاع مبلغ طلب السحب المرفوض #${requestId}`,
-
+        `سحب مستحقات #${requestId}`,
       is_settled: false,
-
       wallet_deducted: true,
     })
     .select("id")
     .single();
 
   /*
-   * إذا فشل تسجيل حركة الإرجاع،
-   * نرجع المحفظة للحالة السابقة.
+   * إذا فشل تسجيل الحركة:
+   * نعيد المبلغ للمحفظة.
    */
 
   if (
-    reversalTransactionError ||
-    !reversalTransaction
+    transactionError ||
+    !transaction
   ) {
     console.error(
-      "Reversal transaction error:",
-      reversalTransactionError
+      "Withdrawal transaction error:",
+      transactionError
     );
 
     await supabaseServer.rpc(
       "deduct_wallet_balance",
       {
         p_user_id: userId,
-        p_amount: amount,
+        p_amount: -amount,
       }
     );
 
@@ -224,64 +211,51 @@ async function updateWithdrawalStatus(
   }
 
   // =========================
-  // تحديث طلب السحب إلى مرفوض
+  // تحديث طلب السحب
   // =========================
 
   const {
-    data: rejectedRequest,
-    error: rejectError,
+    data: approvedRequest,
+    error: approveError,
   } = await supabaseServer
-    .from(
-      "WithdrawalRequests"
-    )
+    .from("WithdrawalRequests")
     .update({
-      status: "rejected",
-
+      status: "approved",
       processed_at:
         new Date().toISOString(),
     })
-    .eq(
-      "id",
-      requestId
-    )
-    .eq(
-      "status",
-      "pending"
-    )
+    .eq("id", requestId)
+    .eq("status", "pending")
     .select("id")
     .maybeSingle();
 
   /*
-   * إذا فشل تغيير الحالة:
-   * نحذف حركة الإرجاع
-   * ونسحب المبلغ الذي أرجعناه
-   * حتى ترجع العملية كما كانت.
+   * إذا فشل تحديث الطلب:
+   * نرجع المحفظة ونحذف حركة السحب.
    */
 
   if (
-    rejectError ||
-    !rejectedRequest
+    approveError ||
+    !approvedRequest
   ) {
     console.error(
-      "Withdrawal rejection update error:",
-      rejectError
+      "Withdrawal approval error:",
+      approveError
     );
 
     await supabaseServer
-      .from(
-        "BalanceTransactions"
-      )
+      .from("BalanceTransactions")
       .delete()
       .eq(
         "id",
-        reversalTransaction.id
+        transaction.id
       );
 
     await supabaseServer.rpc(
       "deduct_wallet_balance",
       {
         p_user_id: userId,
-        p_amount: amount,
+        p_amount: -amount,
       }
     );
 
