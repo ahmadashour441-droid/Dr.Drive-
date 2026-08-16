@@ -106,13 +106,13 @@ export default function LoginPage() {
             max-w-[390px]
             justify-center
 
-            pt-[350px]
+            pt-[560px]
 
             sm:max-w-[430px]
-            sm:pt-[360px]
+            sm:pt-[430px]
 
             lg:max-w-[440px]
-            lg:pt-[390px]
+            lg:pt-[460px]
           "
         >
           <form
