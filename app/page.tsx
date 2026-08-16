@@ -78,8 +78,6 @@ export default function LoginPage() {
         }}
       />
 
-      {/* تدرج أسفل الصورة */}
-
       <div
         className="pointer-events-none fixed inset-x-0 top-0 z-0"
         style={{
@@ -105,18 +103,18 @@ export default function LoginPage() {
             mx-auto
             flex
             w-full
-            max-w-[400px]
+            max-w-[390px]
             justify-center
-            pt-[190px]
+
+            pt-[350px]
 
             sm:max-w-[430px]
-            sm:pt-[270px]
+            sm:pt-[360px]
 
             lg:max-w-[440px]
-            lg:pt-[300px]
+            lg:pt-[390px]
           "
         >
-
           <form
             onSubmit={handleLogin}
             className="
@@ -161,11 +159,11 @@ export default function LoginPage() {
                 shadow-xl
 
                 sm:top-[-52px]
-                sm:h-26
-                sm:w-26
+                sm:h-28
+                sm:w-28
               "
             >
-              <span className="text-5xl">
+              <span className="text-5xl sm:text-6xl">
                 👨‍✈️
               </span>
             </div>
@@ -176,24 +174,11 @@ export default function LoginPage() {
 
             <div className="text-center">
 
-              <h2
-                className="
-                  text-3xl
-                  font-black
-                  text-[#09213a]
-                "
-              >
+              <h2 className="text-3xl font-black text-[#09213a]">
                 مرحبًا بك
               </h2>
 
-              <p
-                className="
-                  mt-1
-                  text-sm
-                  text-gray-500
-                  sm:text-base
-                "
-              >
+              <p className="mt-1 text-sm text-gray-500 sm:text-base">
                 تسجيل الدخول إلى حسابك
               </p>
 
@@ -227,9 +212,7 @@ export default function LoginPage() {
                   autoComplete="tel"
                   value={phone}
                   onChange={(e) =>
-                    setPhone(
-                      e.target.value
-                    )
+                    setPhone(e.target.value)
                   }
                   placeholder="رقم الكابتن"
                   disabled={loading}
@@ -285,9 +268,7 @@ export default function LoginPage() {
                   }
                   value={code}
                   onChange={(e) =>
-                    setCode(
-                      e.target.value
-                    )
+                    setCode(e.target.value)
                   }
                   placeholder="كلمة المرور"
                   disabled={loading}
@@ -433,14 +414,7 @@ export default function LoginPage() {
                 OR
             ========================= */}
 
-            <div
-              className="
-                my-4
-                flex
-                items-center
-                gap-3
-              "
-            >
+            <div className="my-4 flex items-center gap-3">
 
               <div className="h-px flex-1 bg-gray-300" />
 
@@ -488,17 +462,16 @@ export default function LoginPage() {
             </button>
 
           </form>
-
         </section>
 
         {/* =========================
-            FOOTER ONLY
+            FOOTER
         ========================= */}
 
         <footer
           className="
             mx-auto
-            mt-6
+            mt-8
             max-w-[500px]
             border-t
             border-white/20
@@ -576,13 +549,7 @@ export default function LoginPage() {
             "
           >
 
-            <h2
-              className="
-                text-2xl
-                font-black
-                text-[#09213a]
-              "
-            >
+            <h2 className="text-2xl font-black text-[#09213a]">
               الدعم الفني
             </h2>
 
@@ -606,13 +573,8 @@ export default function LoginPage() {
                   hover:bg-yellow-50
                 "
               >
-                <span>
-                  0792026321
-                </span>
-
-                <span className="text-2xl">
-                  📞
-                </span>
+                <span>0792026321</span>
+                <span className="text-2xl">📞</span>
               </a>
 
               <a
@@ -629,13 +591,8 @@ export default function LoginPage() {
                   hover:bg-yellow-50
                 "
               >
-                <span>
-                  0792026320
-                </span>
-
-                <span className="text-2xl">
-                  📞
-                </span>
+                <span>0792026320</span>
+                <span className="text-2xl">📞</span>
               </a>
 
             </div>
