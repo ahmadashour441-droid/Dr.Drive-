@@ -62,26 +62,26 @@ export default function LoginPage() {
       dir="rtl"
       className="min-h-screen overflow-x-hidden bg-[#07192b]"
     >
-      {/* =====================================================
+      {/* =========================
           BACKGROUND
-          الصورة موجودة في:
-          public/login-bg.png
-      ===================================================== */}
+      ========================= */}
 
       <div
-        className="fixed left-0 top-0 z-0 w-full bg-[#07192b] bg-top bg-no-repeat"
+        className="fixed inset-x-0 top-0 z-0 bg-[#07192b] bg-top bg-no-repeat"
         style={{
           backgroundImage:
             "url('/login-bg.png')",
           backgroundSize:
             "100% auto",
-          height: "min(100vh, 133.33vw)",
+          height:
+            "min(100vh, 133.33vw)",
         }}
       />
 
-      {/* تدرج بسيط أسفل الصورة حتى تنتقل للخلفية الداكنة */}
+      {/* تدرج أسفل الصورة */}
+
       <div
-        className="fixed inset-x-0 top-0 z-0 pointer-events-none"
+        className="pointer-events-none fixed inset-x-0 top-0 z-0"
         style={{
           height:
             "min(100vh, 133.33vw)",
@@ -90,28 +90,30 @@ export default function LoginPage() {
         }}
       />
 
-      {/* =====================================================
+      {/* =========================
           CONTENT
-      ===================================================== */}
+      ========================= */}
 
-      <div className="relative z-10 min-h-screen px-3 pb-8 sm:px-6">
+      <div className="relative z-10 min-h-screen px-3 pb-8">
 
-        {/* =================================================
-            LOGIN SECTION
-        ================================================= */}
+        {/* =========================
+            LOGIN CARD
+        ========================= */}
 
         <section
           className="
             mx-auto
+            flex
             w-full
-            max-w-[520px]
+            max-w-[400px]
+            justify-center
             pt-[190px]
 
-            sm:max-w-[560px]
-            sm:pt-[280px]
+            sm:max-w-[430px]
+            sm:pt-[270px]
 
-            lg:max-w-[570px]
-            lg:pt-[310px]
+            lg:max-w-[440px]
+            lg:pt-[300px]
           "
         >
 
@@ -119,6 +121,7 @@ export default function LoginPage() {
             onSubmit={handleLogin}
             className="
               relative
+              w-full
               rounded-[28px]
               border
               border-white/70
@@ -129,22 +132,22 @@ export default function LoginPage() {
               shadow-2xl
               backdrop-blur-sm
 
-              sm:rounded-[32px]
-              sm:px-8
-              sm:pb-7
-              sm:pt-20
+              sm:rounded-[30px]
+              sm:px-6
+              sm:pb-6
+              sm:pt-16
             "
           >
 
-            {/* =================================================
+            {/* =========================
                 CAPTAIN ICON
-            ================================================= */}
+            ========================= */}
 
             <div
               className="
                 absolute
                 left-1/2
-                top-[-48px]
+                top-[-45px]
                 flex
                 h-24
                 w-24
@@ -157,19 +160,19 @@ export default function LoginPage() {
                 bg-[#09213a]
                 shadow-xl
 
-                sm:top-[-58px]
-                sm:h-28
-                sm:w-28
+                sm:top-[-52px]
+                sm:h-26
+                sm:w-26
               "
             >
-              <span className="text-5xl sm:text-6xl">
+              <span className="text-5xl">
                 👨‍✈️
               </span>
             </div>
 
-            {/* =================================================
+            {/* =========================
                 TITLE
-            ================================================= */}
+            ========================= */}
 
             <div className="text-center">
 
@@ -178,8 +181,6 @@ export default function LoginPage() {
                   text-3xl
                   font-black
                   text-[#09213a]
-
-                  sm:text-4xl
                 "
               >
                 مرحبًا بك
@@ -190,8 +191,7 @@ export default function LoginPage() {
                   mt-1
                   text-sm
                   text-gray-500
-
-                  sm:text-lg
+                  sm:text-base
                 "
               >
                 تسجيل الدخول إلى حسابك
@@ -199,9 +199,9 @@ export default function LoginPage() {
 
             </div>
 
-            {/* =================================================
+            {/* =========================
                 PHONE
-            ================================================= */}
+            ========================= */}
 
             <div className="mt-5">
 
@@ -216,8 +216,6 @@ export default function LoginPage() {
                     -translate-y-1/2
                     text-xl
                     text-gray-400
-
-                    sm:text-2xl
                   "
                 >
                   👤
@@ -246,14 +244,10 @@ export default function LoginPage() {
                     text-base
                     text-[#09213a]
                     outline-none
-                    transition
                     placeholder:text-gray-400
                     focus:border-yellow-400
                     focus:ring-2
                     focus:ring-yellow-200
-
-                    sm:h-16
-                    sm:text-lg
                   "
                 />
 
@@ -261,9 +255,9 @@ export default function LoginPage() {
 
             </div>
 
-            {/* =================================================
+            {/* =========================
                 PASSWORD
-            ================================================= */}
+            ========================= */}
 
             <div className="mt-3">
 
@@ -278,8 +272,6 @@ export default function LoginPage() {
                     -translate-y-1/2
                     text-xl
                     text-gray-400
-
-                    sm:text-2xl
                   "
                 >
                   🔒
@@ -311,14 +303,10 @@ export default function LoginPage() {
                     text-base
                     text-[#09213a]
                     outline-none
-                    transition
                     placeholder:text-gray-400
                     focus:border-yellow-400
                     focus:ring-2
                     focus:ring-yellow-200
-
-                    sm:h-16
-                    sm:text-lg
                   "
                 />
 
@@ -336,11 +324,7 @@ export default function LoginPage() {
                     top-1/2
                     -translate-y-1/2
                     text-xl
-                    text-gray-500
-
-                    sm:text-2xl
                   "
-                  aria-label="إظهار كلمة المرور"
                 >
                   {showPassword
                     ? "🙈"
@@ -351,9 +335,9 @@ export default function LoginPage() {
 
             </div>
 
-            {/* =================================================
+            {/* =========================
                 REMEMBER / FORGOT
-            ================================================= */}
+            ========================= */}
 
             <div
               className="
@@ -363,8 +347,6 @@ export default function LoginPage() {
                 justify-between
                 gap-3
                 text-sm
-
-                sm:text-base
               "
             >
 
@@ -409,9 +391,9 @@ export default function LoginPage() {
 
             </div>
 
-            {/* =================================================
+            {/* =========================
                 LOGIN BUTTON
-            ================================================= */}
+            ========================= */}
 
             <button
               type="submit"
@@ -434,9 +416,6 @@ export default function LoginPage() {
                 hover:bg-yellow-300
                 disabled:cursor-not-allowed
                 disabled:opacity-60
-
-                sm:h-16
-                sm:text-xl
               "
             >
               {loading
@@ -450,9 +429,9 @@ export default function LoginPage() {
               )}
             </button>
 
-            {/* =================================================
+            {/* =========================
                 OR
-            ================================================= */}
+            ========================= */}
 
             <div
               className="
@@ -473,9 +452,9 @@ export default function LoginPage() {
 
             </div>
 
-            {/* =================================================
-                TECHNICAL SUPPORT
-            ================================================= */}
+            {/* =========================
+                SUPPORT
+            ========================= */}
 
             <button
               type="button"
@@ -499,8 +478,6 @@ export default function LoginPage() {
                 transition
                 hover:bg-[#09213a]
                 hover:text-white
-
-                sm:text-lg
               "
             >
               <span className="text-xl">
@@ -514,148 +491,15 @@ export default function LoginPage() {
 
         </section>
 
-        {/* =================================================
-            FEATURES
-        ================================================= */}
-
-        <section
-          className="
-            mx-auto
-            mt-8
-            grid
-            w-full
-            max-w-5xl
-            grid-cols-3
-            gap-1
-            text-center
-
-            sm:mt-12
-            sm:gap-6
-          "
-        >
-
-          {/* SAFE */}
-
-          <div className="text-white">
-
-            <div className="text-3xl sm:text-5xl">
-              🛡️
-            </div>
-
-            <h3
-              className="
-                mt-1
-                text-xs
-                font-black
-
-                sm:text-xl
-              "
-            >
-              آمن وموثوق
-            </h3>
-
-            <p
-              className="
-                mt-1
-                hidden
-                text-sm
-                text-white/80
-
-                sm:block
-              "
-            >
-              حماية بياناتك
-              <br />
-              تحت أعلى معايير الأمان
-            </p>
-
-          </div>
-
-          {/* LIVE */}
-
-          <div className="text-white">
-
-            <div className="text-3xl sm:text-5xl">
-              🕐
-            </div>
-
-            <h3
-              className="
-                mt-1
-                text-xs
-                font-black
-
-                sm:text-xl
-              "
-            >
-              متابعة لحظية
-            </h3>
-
-            <p
-              className="
-                mt-1
-                hidden
-                text-sm
-                text-white/80
-
-                sm:block
-              "
-            >
-              تتبع طلباتك وأرباحك
-              <br />
-              في الوقت الحقيقي
-            </p>
-
-          </div>
-
-          {/* EASY */}
-
-          <div className="text-white">
-
-            <div className="text-3xl sm:text-5xl">
-              👛
-            </div>
-
-            <h3
-              className="
-                mt-1
-                text-xs
-                font-black
-
-                sm:text-xl
-              "
-            >
-              سهولة ومرونة
-            </h3>
-
-            <p
-              className="
-                mt-1
-                hidden
-                text-sm
-                text-white/80
-
-                sm:block
-              "
-            >
-              إدارة رصيدك وطلباتك
-              <br />
-              بكل سهولة
-            </p>
-
-          </div>
-
-        </section>
-
-        {/* =================================================
-            FOOTER
-        ================================================= */}
+        {/* =========================
+            FOOTER ONLY
+        ========================= */}
 
         <footer
           className="
             mx-auto
-            mt-5
-            max-w-5xl
+            mt-6
+            max-w-[500px]
             border-t
             border-white/20
             py-4
@@ -702,9 +546,9 @@ export default function LoginPage() {
 
       </div>
 
-      {/* =====================================================
+      {/* =========================
           SUPPORT MODAL
-      ===================================================== */}
+      ========================= */}
 
       {showSupport && (
         <div
@@ -729,8 +573,6 @@ export default function LoginPage() {
               bg-white
               p-6
               shadow-2xl
-
-              sm:p-7
             "
           >
 
@@ -750,8 +592,6 @@ export default function LoginPage() {
 
             <div className="mt-6 space-y-3">
 
-              {/* NUMBER 1 */}
-
               <a
                 href="tel:0792026321"
                 className="
@@ -763,7 +603,6 @@ export default function LoginPage() {
                   p-4
                   font-bold
                   text-[#09213a]
-                  transition
                   hover:bg-yellow-50
                 "
               >
@@ -776,8 +615,6 @@ export default function LoginPage() {
                 </span>
               </a>
 
-              {/* NUMBER 2 */}
-
               <a
                 href="tel:0792026320"
                 className="
@@ -789,7 +626,6 @@ export default function LoginPage() {
                   p-4
                   font-bold
                   text-[#09213a]
-                  transition
                   hover:bg-yellow-50
                 "
               >
@@ -804,8 +640,6 @@ export default function LoginPage() {
 
             </div>
 
-            {/* CLOSE */}
-
             <button
               type="button"
               onClick={() =>
@@ -819,7 +653,6 @@ export default function LoginPage() {
                 py-3
                 font-bold
                 text-white
-                transition
                 hover:bg-[#132f50]
               "
             >
