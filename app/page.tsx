@@ -34,7 +34,10 @@ export default function LoginPage() {
       setLoading(false);
 
       if (!response.ok) {
-        alert(result.error || "فشل تسجيل الدخول");
+        alert(
+          result.error ||
+            "فشل تسجيل الدخول"
+        );
         return;
       }
 
@@ -45,7 +48,11 @@ export default function LoginPage() {
       }
     } catch (err) {
       setLoading(false);
-      alert("حدث خطأ أثناء تسجيل الدخول");
+
+      alert(
+        "حدث خطأ أثناء تسجيل الدخول"
+      );
+
       console.error(err);
     }
   }
@@ -53,110 +60,166 @@ export default function LoginPage() {
   return (
     <main
       dir="rtl"
-      className="relative min-h-[100svh] overflow-x-hidden bg-[#07192b]"
+      className="min-h-screen overflow-x-hidden bg-[#07192b]"
     >
-      {/* =========================
+      {/* =====================================================
           BACKGROUND
-      ========================= */}
+          الصورة موجودة في:
+          public/login-bg.png
+      ===================================================== */}
 
       <div
-        className="fixed inset-0 -z-10 bg-cover bg-center bg-no-repeat"
+        className="fixed left-0 top-0 z-0 w-full bg-[#07192b] bg-top bg-no-repeat"
         style={{
-          backgroundImage: "url('/login-bg.png')",
+          backgroundImage:
+            "url('/login-bg.png')",
+          backgroundSize:
+            "100% auto",
+          height: "min(100vh, 133.33vw)",
         }}
       />
 
-      {/* Dark overlay */}
-      <div className="fixed inset-0 -z-10 bg-black/10" />
+      {/* تدرج بسيط أسفل الصورة حتى تنتقل للخلفية الداكنة */}
+      <div
+        className="fixed inset-x-0 top-0 z-0 pointer-events-none"
+        style={{
+          height:
+            "min(100vh, 133.33vw)",
+          background:
+            "linear-gradient(to bottom, transparent 65%, #07192b 100%)",
+        }}
+      />
 
-      {/* =========================
-          PAGE
-      ========================= */}
+      {/* =====================================================
+          CONTENT
+      ===================================================== */}
 
-      <div className="relative min-h-[100svh] px-3 py-6 sm:px-6 sm:py-8">
+      <div className="relative z-10 min-h-screen px-3 pb-8 sm:px-6">
 
-        {/* =========================
-            TOP TITLE
-        ========================= */}
+        {/* =================================================
+            LOGIN SECTION
+        ================================================= */}
 
-        <section className="mx-auto w-full max-w-5xl text-center">
+        <section
+          className="
+            mx-auto
+            w-full
+            max-w-[520px]
+            pt-[190px]
 
-          <h1
-            dir="ltr"
-            className="text-4xl font-black tracking-tight sm:text-5xl lg:text-6xl"
-          >
-            <span className="text-white">
-              Dr.
-            </span>
-            <span className="text-yellow-400">
-              Drive
-            </span>
-          </h1>
+            sm:max-w-[560px]
+            sm:pt-[280px]
 
-          <div className="mt-1 text-2xl font-black text-yellow-400 sm:text-3xl">
-            وصلني الآن
-          </div>
-
-          <div className="mx-auto mt-5 flex max-w-2xl items-center gap-3 sm:mt-7 sm:gap-6">
-
-            <div className="h-px flex-1 bg-white/70" />
-
-            <h2 className="whitespace-nowrap text-2xl font-black text-white sm:text-3xl lg:text-4xl">
-              منصة الكباتن
-            </h2>
-
-            <div className="h-px flex-1 bg-white/70" />
-
-          </div>
-
-          <p className="mt-2 text-base font-semibold text-white/90 sm:text-lg">
-            رحلتك معنا ... أكثر أمانًا وأسهل
-          </p>
-
-        </section>
-
-        {/* =========================
-            LOGIN
-        ========================= */}
-
-        <section className="mx-auto mt-6 w-full max-w-[560px] sm:mt-8 lg:mt-10">
+            lg:max-w-[570px]
+            lg:pt-[310px]
+          "
+        >
 
           <form
             onSubmit={handleLogin}
-            className="relative rounded-[28px] border border-white/70 bg-white/95 px-5 pb-6 pt-20 shadow-2xl backdrop-blur-md sm:rounded-[32px] sm:px-9 sm:pb-8 sm:pt-24"
+            className="
+              relative
+              rounded-[28px]
+              border
+              border-white/70
+              bg-white/[0.96]
+              px-4
+              pb-5
+              pt-14
+              shadow-2xl
+              backdrop-blur-sm
+
+              sm:rounded-[32px]
+              sm:px-8
+              sm:pb-7
+              sm:pt-20
+            "
           >
 
-            {/* Captain icon */}
+            {/* =================================================
+                CAPTAIN ICON
+            ================================================= */}
 
-            <div className="absolute left-1/2 top-[-58px] flex h-[116px] w-[116px] -translate-x-1/2 items-center justify-center rounded-full border-[8px] border-white bg-[#09213a] shadow-xl sm:top-[-65px] sm:h-[130px] sm:w-[130px]">
+            <div
+              className="
+                absolute
+                left-1/2
+                top-[-48px]
+                flex
+                h-24
+                w-24
+                -translate-x-1/2
+                items-center
+                justify-center
+                rounded-full
+                border-[6px]
+                border-white
+                bg-[#09213a]
+                shadow-xl
 
-              <span className="text-[58px] sm:text-[64px]">
+                sm:top-[-58px]
+                sm:h-28
+                sm:w-28
+              "
+            >
+              <span className="text-5xl sm:text-6xl">
                 👨‍✈️
               </span>
-
             </div>
 
-            {/* Heading */}
+            {/* =================================================
+                TITLE
+            ================================================= */}
 
             <div className="text-center">
 
-              <h3 className="text-3xl font-black text-[#09213a] sm:text-4xl">
-                مرحبًا بك
-              </h3>
+              <h2
+                className="
+                  text-3xl
+                  font-black
+                  text-[#09213a]
 
-              <p className="mt-2 text-base text-gray-500 sm:text-lg">
+                  sm:text-4xl
+                "
+              >
+                مرحبًا بك
+              </h2>
+
+              <p
+                className="
+                  mt-1
+                  text-sm
+                  text-gray-500
+
+                  sm:text-lg
+                "
+              >
                 تسجيل الدخول إلى حسابك
               </p>
 
             </div>
 
-            {/* Phone */}
+            {/* =================================================
+                PHONE
+            ================================================= */}
 
-            <div className="mt-7 sm:mt-8">
+            <div className="mt-5">
 
               <div className="relative">
 
-                <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xl text-gray-400 sm:right-5 sm:text-2xl">
+                <span
+                  className="
+                    pointer-events-none
+                    absolute
+                    right-4
+                    top-1/2
+                    -translate-y-1/2
+                    text-xl
+                    text-gray-400
+
+                    sm:text-2xl
+                  "
+                >
                   👤
                 </span>
 
@@ -166,24 +229,59 @@ export default function LoginPage() {
                   autoComplete="tel"
                   value={phone}
                   onChange={(e) =>
-                    setPhone(e.target.value)
+                    setPhone(
+                      e.target.value
+                    )
                   }
                   placeholder="رقم الكابتن"
                   disabled={loading}
-                  className="h-14 w-full rounded-2xl border border-gray-300 bg-white px-12 text-base text-[#09213a] outline-none transition placeholder:text-gray-400 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-200 sm:h-16 sm:text-lg"
+                  className="
+                    h-14
+                    w-full
+                    rounded-2xl
+                    border
+                    border-gray-300
+                    bg-white
+                    px-12
+                    text-base
+                    text-[#09213a]
+                    outline-none
+                    transition
+                    placeholder:text-gray-400
+                    focus:border-yellow-400
+                    focus:ring-2
+                    focus:ring-yellow-200
+
+                    sm:h-16
+                    sm:text-lg
+                  "
                 />
 
               </div>
 
             </div>
 
-            {/* Password */}
+            {/* =================================================
+                PASSWORD
+            ================================================= */}
 
-            <div className="mt-4">
+            <div className="mt-3">
 
               <div className="relative">
 
-                <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xl text-gray-400 sm:right-5 sm:text-2xl">
+                <span
+                  className="
+                    pointer-events-none
+                    absolute
+                    right-4
+                    top-1/2
+                    -translate-y-1/2
+                    text-xl
+                    text-gray-400
+
+                    sm:text-2xl
+                  "
+                >
                   🔒
                 </span>
 
@@ -195,11 +293,33 @@ export default function LoginPage() {
                   }
                   value={code}
                   onChange={(e) =>
-                    setCode(e.target.value)
+                    setCode(
+                      e.target.value
+                    )
                   }
                   placeholder="كلمة المرور"
                   disabled={loading}
-                  className="h-14 w-full rounded-2xl border border-gray-300 bg-white px-12 pl-14 text-base text-[#09213a] outline-none transition placeholder:text-gray-400 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-200 sm:h-16 sm:text-lg"
+                  className="
+                    h-14
+                    w-full
+                    rounded-2xl
+                    border
+                    border-gray-300
+                    bg-white
+                    px-12
+                    pl-12
+                    text-base
+                    text-[#09213a]
+                    outline-none
+                    transition
+                    placeholder:text-gray-400
+                    focus:border-yellow-400
+                    focus:ring-2
+                    focus:ring-yellow-200
+
+                    sm:h-16
+                    sm:text-lg
+                  "
                 />
 
                 <button
@@ -210,7 +330,16 @@ export default function LoginPage() {
                       !showPassword
                     )
                   }
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-xl text-gray-500 sm:left-5 sm:text-2xl"
+                  className="
+                    absolute
+                    left-4
+                    top-1/2
+                    -translate-y-1/2
+                    text-xl
+                    text-gray-500
+
+                    sm:text-2xl
+                  "
                   aria-label="إظهار كلمة المرور"
                 >
                   {showPassword
@@ -222,41 +351,93 @@ export default function LoginPage() {
 
             </div>
 
-            {/* Remember / Forgot */}
+            {/* =================================================
+                REMEMBER / FORGOT
+            ================================================= */}
 
-            <div className="mt-4 flex items-center justify-between gap-3 text-sm sm:mt-5 sm:text-base">
+            <div
+              className="
+                mt-3
+                flex
+                items-center
+                justify-between
+                gap-3
+                text-sm
+
+                sm:text-base
+              "
+            >
 
               <button
                 type="button"
                 onClick={() =>
                   setShowSupport(true)
                 }
-                className="font-bold text-blue-700 hover:underline"
+                className="
+                  font-bold
+                  text-blue-700
+                  hover:underline
+                "
               >
                 نسيت كلمة المرور؟
               </button>
 
-              <label className="flex shrink-0 cursor-pointer items-center gap-2 font-semibold text-gray-700">
-
+              <label
+                className="
+                  flex
+                  shrink-0
+                  cursor-pointer
+                  items-center
+                  gap-2
+                  font-semibold
+                  text-gray-700
+                "
+              >
                 <span>
                   تذكرني
                 </span>
 
                 <input
                   type="checkbox"
-                  className="h-5 w-5 accent-yellow-400"
+                  className="
+                    h-5
+                    w-5
+                    accent-yellow-400
+                  "
                 />
-
               </label>
 
             </div>
 
-            {/* Login button */}
+            {/* =================================================
+                LOGIN BUTTON
+            ================================================= */}
 
             <button
               type="submit"
               disabled={loading}
-              className="mt-5 flex h-14 w-full items-center justify-center gap-4 rounded-2xl bg-yellow-400 text-lg font-black text-[#09213a] shadow-lg transition hover:bg-yellow-300 disabled:cursor-not-allowed disabled:opacity-60 sm:h-16 sm:text-xl"
+              className="
+                mt-4
+                flex
+                h-14
+                w-full
+                items-center
+                justify-center
+                gap-4
+                rounded-2xl
+                bg-yellow-400
+                text-lg
+                font-black
+                text-[#09213a]
+                shadow-lg
+                transition
+                hover:bg-yellow-300
+                disabled:cursor-not-allowed
+                disabled:opacity-60
+
+                sm:h-16
+                sm:text-xl
+              "
             >
               {loading
                 ? "جاري تسجيل الدخول..."
@@ -269,9 +450,18 @@ export default function LoginPage() {
               )}
             </button>
 
-            {/* OR */}
+            {/* =================================================
+                OR
+            ================================================= */}
 
-            <div className="my-5 flex items-center gap-4 sm:my-6">
+            <div
+              className="
+                my-4
+                flex
+                items-center
+                gap-3
+              "
+            >
 
               <div className="h-px flex-1 bg-gray-300" />
 
@@ -283,16 +473,37 @@ export default function LoginPage() {
 
             </div>
 
-            {/* Support */}
+            {/* =================================================
+                TECHNICAL SUPPORT
+            ================================================= */}
 
             <button
               type="button"
               onClick={() =>
                 setShowSupport(true)
               }
-              className="flex h-13 w-full items-center justify-center gap-3 rounded-2xl border-2 border-[#09213a] bg-white py-3 text-base font-bold text-[#09213a] transition hover:bg-[#09213a] hover:text-white sm:h-14 sm:text-lg"
+              className="
+                flex
+                h-14
+                w-full
+                items-center
+                justify-center
+                gap-3
+                rounded-2xl
+                border-2
+                border-[#09213a]
+                bg-white
+                text-base
+                font-bold
+                text-[#09213a]
+                transition
+                hover:bg-[#09213a]
+                hover:text-white
+
+                sm:text-lg
+              "
             >
-              <span className="text-xl sm:text-2xl">
+              <span className="text-xl">
                 🎧
               </span>
 
@@ -303,11 +514,27 @@ export default function LoginPage() {
 
         </section>
 
-        {/* =========================
+        {/* =================================================
             FEATURES
-        ========================= */}
+        ================================================= */}
 
-        <section className="mx-auto mt-7 grid w-full max-w-5xl grid-cols-3 gap-2 text-center sm:mt-10 sm:gap-6">
+        <section
+          className="
+            mx-auto
+            mt-8
+            grid
+            w-full
+            max-w-5xl
+            grid-cols-3
+            gap-1
+            text-center
+
+            sm:mt-12
+            sm:gap-6
+          "
+        >
+
+          {/* SAFE */}
 
           <div className="text-white">
 
@@ -315,11 +542,28 @@ export default function LoginPage() {
               🛡️
             </div>
 
-            <h3 className="mt-2 text-sm font-black sm:text-xl">
+            <h3
+              className="
+                mt-1
+                text-xs
+                font-black
+
+                sm:text-xl
+              "
+            >
               آمن وموثوق
             </h3>
 
-            <p className="mt-1 hidden text-sm text-white/80 sm:block">
+            <p
+              className="
+                mt-1
+                hidden
+                text-sm
+                text-white/80
+
+                sm:block
+              "
+            >
               حماية بياناتك
               <br />
               تحت أعلى معايير الأمان
@@ -327,17 +571,36 @@ export default function LoginPage() {
 
           </div>
 
+          {/* LIVE */}
+
           <div className="text-white">
 
             <div className="text-3xl sm:text-5xl">
               🕐
             </div>
 
-            <h3 className="mt-2 text-sm font-black sm:text-xl">
+            <h3
+              className="
+                mt-1
+                text-xs
+                font-black
+
+                sm:text-xl
+              "
+            >
               متابعة لحظية
             </h3>
 
-            <p className="mt-1 hidden text-sm text-white/80 sm:block">
+            <p
+              className="
+                mt-1
+                hidden
+                text-sm
+                text-white/80
+
+                sm:block
+              "
+            >
               تتبع طلباتك وأرباحك
               <br />
               في الوقت الحقيقي
@@ -345,17 +608,36 @@ export default function LoginPage() {
 
           </div>
 
+          {/* EASY */}
+
           <div className="text-white">
 
             <div className="text-3xl sm:text-5xl">
               👛
             </div>
 
-            <h3 className="mt-2 text-sm font-black sm:text-xl">
+            <h3
+              className="
+                mt-1
+                text-xs
+                font-black
+
+                sm:text-xl
+              "
+            >
               سهولة ومرونة
             </h3>
 
-            <p className="mt-1 hidden text-sm text-white/80 sm:block">
+            <p
+              className="
+                mt-1
+                hidden
+                text-sm
+                text-white/80
+
+                sm:block
+              "
+            >
               إدارة رصيدك وطلباتك
               <br />
               بكل سهولة
@@ -365,57 +647,100 @@ export default function LoginPage() {
 
         </section>
 
-        {/* =========================
+        {/* =================================================
             FOOTER
-        ========================= */}
+        ================================================= */}
 
-        <footer className="mx-auto mt-7 w-full max-w-5xl border-t border-white/20 py-4 text-center text-xs text-white/80 sm:mt-10 sm:text-sm">
+        <footer
+          className="
+            mx-auto
+            mt-5
+            max-w-5xl
+            border-t
+            border-white/20
+            py-4
+            text-center
+            text-xs
+            text-white/80
 
-          <div className="flex flex-col items-center justify-between gap-2 sm:flex-row">
+            sm:mt-10
+            sm:text-sm
+          "
+        >
 
-            <div
+          <div className="font-black">
+
+            <span
               dir="ltr"
-              className="font-black"
+              className="text-white"
             >
-              <span className="text-white">
-                Dr.
-              </span>
-              <span className="text-yellow-400">
-                Drive
-              </span>
+              Dr.
+            </span>
 
-              <span className="mr-2 text-yellow-400">
-                وصلني الآن
-              </span>
-            </div>
+            <span
+              dir="ltr"
+              className="text-yellow-400"
+            >
+              Drive
+            </span>
 
-            <div>
-              © 2025 Dr.Drive - جميع الحقوق محفوظة
-            </div>
+            <span className="mr-2 text-yellow-400">
+              وصلني الآن
+            </span>
 
-            <div>
-              نسخة 1.0.0
-            </div>
+          </div>
 
+          <div className="mt-1">
+            © 2025 Dr.Drive - جميع الحقوق محفوظة
+          </div>
+
+          <div className="mt-1">
+            نسخة 1.0.0
           </div>
 
         </footer>
 
       </div>
 
-      {/* =========================
+      {/* =====================================================
           SUPPORT MODAL
-      ========================= */}
+      ===================================================== */}
 
       {showSupport && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+        <div
+          className="
+            fixed
+            inset-0
+            z-50
+            flex
+            items-center
+            justify-center
+            bg-black/60
+            p-4
+          "
+        >
 
           <div
             dir="rtl"
-            className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl sm:p-7"
+            className="
+              w-full
+              max-w-md
+              rounded-3xl
+              bg-white
+              p-6
+              shadow-2xl
+
+              sm:p-7
+            "
           >
 
-            <h2 className="text-2xl font-black text-[#09213a]">
+            <h2
+              className="
+                text-2xl
+                font-black
+                text-[#09213a]
+              "
+            >
               الدعم الفني
             </h2>
 
@@ -425,9 +750,22 @@ export default function LoginPage() {
 
             <div className="mt-6 space-y-3">
 
+              {/* NUMBER 1 */}
+
               <a
                 href="tel:0792026321"
-                className="flex items-center justify-between rounded-2xl border p-4 font-bold text-[#09213a] transition hover:bg-yellow-50"
+                className="
+                  flex
+                  items-center
+                  justify-between
+                  rounded-2xl
+                  border
+                  p-4
+                  font-bold
+                  text-[#09213a]
+                  transition
+                  hover:bg-yellow-50
+                "
               >
                 <span>
                   0792026321
@@ -438,9 +776,22 @@ export default function LoginPage() {
                 </span>
               </a>
 
+              {/* NUMBER 2 */}
+
               <a
                 href="tel:0792026320"
-                className="flex items-center justify-between rounded-2xl border p-4 font-bold text-[#09213a] transition hover:bg-yellow-50"
+                className="
+                  flex
+                  items-center
+                  justify-between
+                  rounded-2xl
+                  border
+                  p-4
+                  font-bold
+                  text-[#09213a]
+                  transition
+                  hover:bg-yellow-50
+                "
               >
                 <span>
                   0792026320
@@ -453,12 +804,24 @@ export default function LoginPage() {
 
             </div>
 
+            {/* CLOSE */}
+
             <button
               type="button"
               onClick={() =>
                 setShowSupport(false)
               }
-              className="mt-5 w-full rounded-2xl bg-[#09213a] py-3 font-bold text-white"
+              className="
+                mt-5
+                w-full
+                rounded-2xl
+                bg-[#09213a]
+                py-3
+                font-bold
+                text-white
+                transition
+                hover:bg-[#132f50]
+              "
             >
               إغلاق
             </button>
