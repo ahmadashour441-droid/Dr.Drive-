@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
@@ -11,6 +11,17 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const savedPhone = localStorage.getItem(
+      "drdrive_remember_phone"
+    );
+
+    if (savedPhone) {
+      setPhone(savedPhone);
+      setRemember(true);
+    }
+  }, []);
 
   async function handleLogin(
     e: React.FormEvent<HTMLFormElement>
@@ -73,469 +84,410 @@ export default function LoginPage() {
   }
 
   function callSupport() {
-    window.location.href =
-      "tel:0792026321";
+    window.location.href = "tel:0792026321";
   }
 
   return (
     <main
       dir="rtl"
-      className="min-h-[100dvh] w-full bg-black"
+      className="
+        min-h-screen
+        w-full
+        bg-[#071E36]
+      "
     >
+
       {/* =====================================================
-          التصميم الكامل
-          النسبة الأصلية للصورة = 2 : 3
-          لذلك لن يتم قص الخلفية على الهاتف
+          الصفحة الرئيسية
+          الصورة الأصلية 2:3
       ===================================================== */}
 
-      <div className="flex min-h-[100dvh] w-full items-center justify-center overflow-hidden">
+      <div
+        className="
+          relative
+          mx-auto
+          w-full
+          overflow-hidden
+          bg-[#071E36]
+        "
+        style={{
+          aspectRatio: "2 / 3",
+          backgroundImage:
+            "url('/login-bg.png')",
+          backgroundSize: "100% 100%",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+        }}
+      >
+
+        {/* =================================================
+            LOGIN CARD
+        ================================================= */}
 
         <div
           className="
-            relative
-            h-[100dvh]
-            w-full
-            max-w-[1080px]
-            overflow-hidden
-            bg-[#071E36]
-            bg-[url('/login-bg.png')]
-            bg-contain
-            bg-center
-            bg-no-repeat
-            sm:h-[min(100dvh,1536px)]
+            absolute
+            left-1/2
+            top-[37%]
+            w-[63%]
+            -translate-x-1/2
           "
-          style={{
-            aspectRatio: "2 / 3",
-          }}
         >
 
-          {/* =================================================
-              طبقة محتوى الصفحة
-          ================================================= */}
-
-          <div className="absolute inset-0">
+          <div
+            className="
+              relative
+              rounded-[24px]
+              bg-white/95
+              px-[6%]
+              pb-[5%]
+              pt-[10%]
+              shadow-2xl
+            "
+          >
 
             {/* =================================================
-                كرت تسجيل الدخول
-                مثبت في منتصف التصميم
+                ICON
             ================================================= */}
 
             <div
               className="
                 absolute
                 left-1/2
-                top-[38%]
-                w-[78%]
-                max-w-[620px]
+                top-0
+                flex
+                h-[78px]
+                w-[78px]
                 -translate-x-1/2
+                -translate-y-1/2
+                items-center
+                justify-center
+                rounded-full
+                border-[5px]
+                border-white
+                bg-[#071E36]
+                shadow-xl
               "
             >
+              <span className="text-[42px]">
+                👨‍✈️
+              </span>
+            </div>
 
-              {/* الكرت الأبيض */}
+            {/* =================================================
+                TITLE
+            ================================================= */}
+
+            <div className="text-center">
+
+              <h1
+                className="
+                  text-[22px]
+                  font-black
+                  leading-tight
+                  text-[#071E36]
+                "
+              >
+                مرحباً بك
+              </h1>
+
+              <p
+                className="
+                  mt-1
+                  text-[12px]
+                  font-semibold
+                  text-slate-500
+                "
+              >
+                تسجيل الدخول إلى حسابك
+              </p>
+
+            </div>
+
+            {/* =================================================
+                FORM
+            ================================================= */}
+
+            <form
+              onSubmit={handleLogin}
+              className="mt-4 space-y-2"
+            >
+
+              {/* PHONE */}
 
               <div
                 className="
-                  relative
-                  rounded-[30px]
+                  flex
+                  h-[45px]
+                  items-center
+                  rounded-[13px]
                   border
-                  border-white/70
-                  bg-white/95
-                  px-[6%]
-                  pb-[5%]
-                  pt-[9%]
-                  shadow-[0_20px_60px_rgba(0,0,0,.25)]
-                  backdrop-blur-sm
+                  border-slate-300
+                  bg-white
+                  px-3
                 "
               >
 
-                {/* =================================================
-                    أيقونة الكابتن
-                ================================================= */}
+                <span className="ml-2 text-[18px]">
+                  👤
+                </span>
 
-                <div
+                <input
+                  type="tel"
+                  inputMode="tel"
+                  value={phone}
+                  onChange={(e) =>
+                    setPhone(e.target.value)
+                  }
+                  placeholder="رقم الكابتن"
+                  autoComplete="tel"
+                  disabled={loading}
                   className="
-                    absolute
-                    left-1/2
-                    top-0
-                    flex
-                    h-[105px]
-                    w-[105px]
-                    -translate-x-1/2
-                    -translate-y-1/2
-                    items-center
-                    justify-center
-                    overflow-hidden
-                    rounded-full
-                    border-[7px]
-                    border-white
-                    bg-[#071E36]
-                    shadow-[0_10px_30px_rgba(0,0,0,.22)]
-                    sm:h-[120px]
-                    sm:w-[120px]
+                    min-w-0
+                    flex-1
+                    bg-transparent
+                    text-right
+                    text-[14px]
+                    font-semibold
+                    text-[#071E36]
+                    outline-none
+                    placeholder:text-slate-400
                   "
-                >
-                  <span
-                    className="
-                      text-[58px]
-                      leading-none
-                      sm:text-[68px]
-                    "
-                  >
-                    👨‍✈️
-                  </span>
-                </div>
+                />
 
-                {/* =================================================
-                    العنوان
-                ================================================= */}
+              </div>
 
-                <div className="text-center">
+              {/* PASSWORD */}
 
-                  <h1
-                    className="
-                      text-[30px]
-                      font-black
-                      leading-tight
-                      text-[#071E36]
-                      sm:text-[38px]
-                    "
-                  >
-                    مرحباً بك
-                  </h1>
+              <div
+                className="
+                  flex
+                  h-[45px]
+                  items-center
+                  rounded-[13px]
+                  border
+                  border-slate-300
+                  bg-white
+                  px-3
+                "
+              >
 
-                  <p
-                    className="
-                      mt-2
-                      text-[16px]
-                      font-medium
-                      text-slate-500
-                      sm:text-[20px]
-                    "
-                  >
-                    تسجيل الدخول إلى حسابك
-                  </p>
+                <span className="ml-2 text-[18px]">
+                  🔒
+                </span>
 
-                </div>
-
-                {/* =================================================
-                    FORM
-                ================================================= */}
-
-                <form
-                  onSubmit={handleLogin}
-                  className="mt-6 space-y-3 sm:mt-7 sm:space-y-4"
-                >
-
-                  {/* رقم الهاتف */}
-
-                  <div
-                    className="
-                      flex
-                      h-[58px]
-                      items-center
-                      rounded-[16px]
-                      border
-                      border-slate-300
-                      bg-white
-                      px-4
-                      shadow-sm
-                      sm:h-[68px]
-                    "
-                  >
-
-                    <span className="ml-3 text-[25px]">
-                      👤
-                    </span>
-
-                    <input
-                      type="tel"
-                      inputMode="tel"
-                      dir="rtl"
-                      value={phone}
-                      onChange={(e) =>
-                        setPhone(e.target.value)
-                      }
-                      placeholder="رقم الكابتن"
-                      autoComplete="tel"
-                      disabled={loading}
-                      className="
-                        min-w-0
-                        flex-1
-                        bg-transparent
-                        text-right
-                        text-[17px]
-                        font-semibold
-                        text-[#071E36]
-                        outline-none
-                        placeholder:text-slate-400
-                        sm:text-[20px]
-                      "
-                    />
-
-                  </div>
-
-                  {/* كلمة المرور */}
-
-                  <div
-                    className="
-                      flex
-                      h-[58px]
-                      items-center
-                      rounded-[16px]
-                      border
-                      border-slate-300
-                      bg-white
-                      px-4
-                      shadow-sm
-                      sm:h-[68px]
-                    "
-                  >
-
-                    <span className="ml-3 text-[25px]">
-                      🔒
-                    </span>
-
-                    <input
-                      type={
-                        showPassword
-                          ? "text"
-                          : "password"
-                      }
-                      value={code}
-                      onChange={(e) =>
-                        setCode(e.target.value)
-                      }
-                      placeholder="كلمة المرور"
-                      autoComplete="current-password"
-                      disabled={loading}
-                      className="
-                        min-w-0
-                        flex-1
-                        bg-transparent
-                        text-right
-                        text-[17px]
-                        font-semibold
-                        text-[#071E36]
-                        outline-none
-                        placeholder:text-slate-400
-                        sm:text-[20px]
-                      "
-                    />
-
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setShowPassword(
-                          (value) => !value
-                        )
-                      }
-                      className="
-                        mr-2
-                        shrink-0
-                        text-[24px]
-                      "
-                      aria-label={
-                        showPassword
-                          ? "إخفاء كلمة المرور"
-                          : "إظهار كلمة المرور"
-                      }
-                    >
-                      {showPassword
-                        ? "🙈"
-                        : "👁️"}
-                    </button>
-
-                  </div>
-
-                  {/* تذكرني + نسيت كلمة المرور */}
-
-                  <div
-                    className="
-                      flex
-                      items-center
-                      justify-between
-                      gap-3
-                      px-1
-                    "
-                  >
-
-                    <label
-                      className="
-                        flex
-                        cursor-pointer
-                        items-center
-                        gap-2
-                        text-[15px]
-                        font-semibold
-                        text-[#071E36]
-                        sm:text-[18px]
-                      "
-                    >
-
-                      <input
-                        type="checkbox"
-                        checked={remember}
-                        onChange={(e) =>
-                          setRemember(
-                            e.target.checked
-                          )
-                        }
-                        className="
-                          h-5
-                          w-5
-                          accent-[#F5B82E]
-                        "
-                      />
-
-                      تذكرني
-
-                    </label>
-
-                    <button
-                      type="button"
-                      onClick={() =>
-                        alert(
-                          "لإعادة تعيين كلمة المرور، يرجى التواصل مع الدعم الفني."
-                        )
-                      }
-                      className="
-                        text-[15px]
-                        font-bold
-                        text-blue-600
-                        hover:underline
-                        sm:text-[18px]
-                      "
-                    >
-                      نسيت كلمة المرور؟
-                    </button>
-
-                  </div>
-
-                  {/* =================================================
-                      تسجيل الدخول
-                  ================================================= */}
-
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="
-                      flex
-                      h-[62px]
-                      w-full
-                      items-center
-                      justify-center
-                      gap-4
-                      rounded-[18px]
-                      bg-[#F5B82E]
-                      text-[22px]
-                      font-black
-                      text-[#071E36]
-                      shadow-[0_8px_20px_rgba(245,184,46,.25)]
-                      transition
-                      hover:bg-[#f8c44e]
-                      active:scale-[.99]
-                      disabled:cursor-not-allowed
-                      disabled:opacity-60
-                      sm:h-[72px]
-                      sm:text-[26px]
-                    "
-                  >
-
-                    <span>
-                      {loading
-                        ? "جاري تسجيل الدخول..."
-                        : "تسجيل الدخول"}
-                    </span>
-
-                    {!loading && (
-                      <span className="text-[28px]">
-                        ←
-                      </span>
-                    )}
-
-                  </button>
-
-                </form>
-
-                {/* =================================================
-                    أو
-                ================================================= */}
-
-                <div
+                <input
+                  type={
+                    showPassword
+                      ? "text"
+                      : "password"
+                  }
+                  value={code}
+                  onChange={(e) =>
+                    setCode(e.target.value)
+                  }
+                  placeholder="كلمة المرور"
+                  autoComplete="current-password"
+                  disabled={loading}
                   className="
-                    my-4
-                    flex
-                    items-center
-                    gap-4
-                    sm:my-5
+                    min-w-0
+                    flex-1
+                    bg-transparent
+                    text-right
+                    text-[14px]
+                    font-semibold
+                    text-[#071E36]
+                    outline-none
+                    placeholder:text-slate-400
                   "
-                >
-
-                  <div className="h-px flex-1 bg-slate-300" />
-
-                  <span
-                    className="
-                      text-[15px]
-                      font-semibold
-                      text-slate-500
-                      sm:text-[18px]
-                    "
-                  >
-                    أو
-                  </span>
-
-                  <div className="h-px flex-1 bg-slate-300" />
-
-                </div>
-
-                {/* =================================================
-                    الدعم الفني
-                ================================================= */}
+                />
 
                 <button
                   type="button"
-                  onClick={callSupport}
-                  className="
-                    flex
-                    h-[58px]
-                    w-full
-                    items-center
-                    justify-center
-                    gap-3
-                    rounded-[16px]
-                    border-[2px]
-                    border-[#071E36]
-                    bg-white
-                    text-[18px]
-                    font-black
-                    text-[#071E36]
-                    transition
-                    hover:bg-slate-50
-                    active:scale-[.99]
-                    sm:h-[66px]
-                    sm:text-[21px]
-                  "
+                  onClick={() =>
+                    setShowPassword(
+                      (value) => !value
+                    )
+                  }
+                  className="mr-1 text-[18px]"
                 >
-
-                  <span>
-                    🎧
-                  </span>
-
-                  <span>
-                    تواصل مع الدعم الفني
-                  </span>
-
+                  {showPassword
+                    ? "🙈"
+                    : "👁️"}
                 </button>
 
               </div>
 
+              {/* REMEMBER / FORGOT */}
+
+              <div
+                className="
+                  flex
+                  items-center
+                  justify-between
+                  gap-2
+                  px-1
+                "
+              >
+
+                <label
+                  className="
+                    flex
+                    items-center
+                    gap-1
+                    text-[12px]
+                    font-semibold
+                    text-[#071E36]
+                  "
+                >
+
+                  <input
+                    type="checkbox"
+                    checked={remember}
+                    onChange={(e) =>
+                      setRemember(
+                        e.target.checked
+                      )
+                    }
+                    className="
+                      h-4
+                      w-4
+                      accent-[#F5B82E]
+                    "
+                  />
+
+                  تذكرني
+
+                </label>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    alert(
+                      "لإعادة تعيين كلمة المرور، يرجى التواصل مع الدعم الفني."
+                    )
+                  }
+                  className="
+                    text-[12px]
+                    font-bold
+                    text-blue-600
+                  "
+                >
+                  نسيت كلمة المرور؟
+                </button>
+
+              </div>
+
+              {/* LOGIN */}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="
+                  flex
+                  h-[50px]
+                  w-full
+                  items-center
+                  justify-center
+                  gap-3
+                  rounded-[14px]
+                  bg-[#F5B82E]
+                  text-[18px]
+                  font-black
+                  text-[#071E36]
+                  shadow-lg
+                  transition
+                  active:scale-[.99]
+                  disabled:opacity-60
+                "
+              >
+
+                <span>
+                  {loading
+                    ? "جاري الدخول..."
+                    : "تسجيل الدخول"}
+                </span>
+
+                {!loading && (
+                  <span className="text-[22px]">
+                    ←
+                  </span>
+                )}
+
+              </button>
+
+            </form>
+
+            {/* =================================================
+                OR
+            ================================================= */}
+
+            <div
+              className="
+                my-3
+                flex
+                items-center
+                gap-2
+              "
+            >
+
+              <div className="h-px flex-1 bg-slate-300" />
+
+              <span
+                className="
+                  text-[12px]
+                  font-semibold
+                  text-slate-500
+                "
+              >
+                أو
+              </span>
+
+              <div className="h-px flex-1 bg-slate-300" />
+
             </div>
+
+            {/* =================================================
+                SUPPORT
+            ================================================= */}
+
+            <button
+              type="button"
+              onClick={callSupport}
+              className="
+                flex
+                h-[47px]
+                w-full
+                items-center
+                justify-center
+                gap-2
+                rounded-[13px]
+                border-2
+                border-[#071E36]
+                bg-white
+                text-[15px]
+                font-black
+                text-[#071E36]
+                active:scale-[.99]
+              "
+            >
+
+              <span className="text-[18px]">
+                🎧
+              </span>
+
+              <span>
+                تواصل مع الدعم الفني
+              </span>
+
+            </button>
 
           </div>
 
         </div>
 
       </div>
+
     </main>
   );
 }
