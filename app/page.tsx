@@ -76,9 +76,9 @@ export default function LoginPage() {
         router.push("/dashboard");
       }
     } catch (error) {
-      console.error(error);
-      alert(verflow-x-hidden"حدث خطأ أثناء تسجيل الدخول");
-    } finally {
+  console.error(error);
+  alert("حدث خطأ أثناء تسجيل الدخول");
+} finally {
       setLoading(false);
     }
   }
@@ -93,7 +93,7 @@ export default function LoginPage() {
       className="
         min-h-[100dvh]
         w-full
-        o
+        overflow-visible
         bg-[#071E36]
       "
     >
