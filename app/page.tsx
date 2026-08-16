@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
@@ -12,51 +12,75 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showSupport, setShowSupport] = useState(false);
 
-  async function handleLogin(e: React.FormEvent) {
+  // =========================================================
+  // تثبيت الصفحة في أعلى الصفحة عند فتحها
+  // =========================================================
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+
+    const timer = setTimeout(() => {
+      window.scrollTo(0, 0);
+    }, 50);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  // =========================================================
+  // LOGIN
+  // =========================================================
+
+  async function handleLogin(
+    e: React.FormEvent
+  ) {
     e.preventDefault();
+
+    if (loading) return;
 
     setLoading(true);
 
     try {
-      const response = await fetch("/api/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          phone,
-          code,
-        }),
-      });
+      const response = await fetch(
+        "/api/login",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+          body: JSON.stringify({
+            phone,
+            code,
+          }),
+        }
+      );
 
-      const result = await response.json();
+      const result =
+        await response.json();
 
       if (!response.ok) {
-        setLoading(false);
-
         alert(
           result.error ||
             "فشل تسجيل الدخول"
         );
 
+        setLoading(false);
         return;
       }
-
-      setLoading(false);
 
       if (result.user.is_admin) {
         router.push("/admin");
       } else {
         router.push("/dashboard");
       }
-    } catch (err) {
-      setLoading(false);
+    } catch (error) {
+      console.error(error);
 
       alert(
         "حدث خطأ أثناء تسجيل الدخول"
       );
-
-      console.error(err);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -66,66 +90,60 @@ export default function LoginPage() {
       className="
         relative
         min-h-[100svh]
+        w-full
         overflow-x-hidden
         bg-[#07192b]
       "
     >
 
       {/* =====================================================
-          BACKGROUND IMAGE
+          BACKGROUND
       ===================================================== */}
 
       <div
         className="
-          pointer-events-none
-          absolute
-          left-0
-          top-0
+          fixed
+          inset-0
           z-0
-          w-full
-          bg-top
-          bg-no-repeat
+          bg-[#07192b]
         "
-        style={{
-          backgroundImage:
-            "url('/login-bg.png')",
+      >
 
-          /*
-           * الصورة تظهر بعرض الصفحة
-           * بدون cover حتى لا يتم قصها.
-           */
-          backgroundSize:
-            "100% auto",
+        <div
+          className="
+            absolute
+            left-0
+            top-0
+            w-full
+            bg-top
+            bg-no-repeat
+          "
+          style={{
+            backgroundImage:
+              "url('/login-bg.png')",
+            backgroundSize:
+              "100% auto",
+            aspectRatio:
+              "2 / 3",
+          }}
+        />
 
-          /*
-           * ارتفاع الصورة يعتمد على أبعادها.
-           */
-          aspectRatio:
-            "2 / 3",
-        }}
-      />
+        {/* تدرج سفلي حتى تبقى الخلفية متناسقة */}
+        <div
+          className="
+            absolute
+            inset-0
+            bg-gradient-to-b
+            from-transparent
+            via-transparent
+            to-[#07192b]
+          "
+        />
+
+      </div>
 
       {/* =====================================================
-          DARK BACKGROUND BELOW IMAGE
-      ===================================================== */}
-
-      <div
-        className="
-          absolute
-          left-0
-          right-0
-          top-0
-          z-0
-          h-full
-          bg-gradient-to-b
-          from-transparent
-          via-transparent
-          to-[#07192b]
-        "
-      />
-
-      {/* =====================================================
-          PAGE CONTENT
+          CONTENT
       ===================================================== */}
 
       <div
@@ -146,15 +164,16 @@ export default function LoginPage() {
 
         <div
           className="
-            mt-[470px]
-            w-[calc(100%-32px)]
-            max-w-[380px]
+            mt-[420px]
+            flex
+            w-full
+            justify-center
+            px-4
 
-            sm:mt-[430px]
-            sm:max-w-[430px]
+            sm:mt-[440px]
+            sm:px-6
 
             lg:mt-[470px]
-            lg:max-w-[450px]
           "
         >
 
@@ -163,19 +182,23 @@ export default function LoginPage() {
             className="
               relative
               w-full
+              max-w-[370px]
               rounded-[28px]
               border
-              border-white/80
+              border-white
               bg-white/[0.97]
               px-4
               pb-5
-              pt-14
+              pt-[58px]
               shadow-2xl
 
+              sm:max-w-[430px]
               sm:rounded-[32px]
               sm:px-7
               sm:pb-7
-              sm:pt-16
+              sm:pt-[68px]
+
+              lg:max-w-[450px]
             "
           >
 
@@ -187,10 +210,11 @@ export default function LoginPage() {
               className="
                 absolute
                 left-1/2
-                top-[-48px]
+                top-[-38px]
+                z-20
                 flex
-                h-24
-                w-24
+                h-[92px]
+                w-[92px]
                 -translate-x-1/2
                 items-center
                 justify-center
@@ -200,19 +224,23 @@ export default function LoginPage() {
                 bg-[#09213a]
                 shadow-xl
 
-                sm:top-[-55px]
-                sm:h-28
-                sm:w-28
+                sm:top-[-45px]
+                sm:h-[110px]
+                sm:w-[110px]
               "
             >
+
               <span
                 className="
-                  text-5xl
-                  sm:text-6xl
+                  text-[48px]
+                  leading-none
+
+                  sm:text-[58px]
                 "
               >
                 👨‍✈️
               </span>
+
             </div>
 
             {/* =================================================
@@ -223,10 +251,12 @@ export default function LoginPage() {
 
               <h1
                 className="
-                  text-3xl
+                  text-[30px]
                   font-black
+                  leading-tight
                   text-[#09213a]
-                  sm:text-4xl
+
+                  sm:text-[38px]
                 "
               >
                 مرحبًا بك
@@ -234,10 +264,11 @@ export default function LoginPage() {
 
               <p
                 className="
-                  mt-1
-                  text-sm
+                  mt-2
+                  text-[15px]
                   text-gray-500
-                  sm:text-base
+
+                  sm:text-[17px]
                 "
               >
                 تسجيل الدخول إلى حسابك
@@ -249,7 +280,7 @@ export default function LoginPage() {
                 PHONE
             ================================================= */}
 
-            <div className="mt-5">
+            <div className="mt-6">
 
               <div className="relative">
 
@@ -259,9 +290,9 @@ export default function LoginPage() {
                     absolute
                     right-4
                     top-1/2
+                    z-10
                     -translate-y-1/2
                     text-xl
-                    text-gray-400
                   "
                 >
                   👤
@@ -287,6 +318,7 @@ export default function LoginPage() {
                     border-gray-300
                     bg-white
                     px-12
+                    text-right
                     text-base
                     text-[#09213a]
                     outline-none
@@ -318,9 +350,9 @@ export default function LoginPage() {
                     absolute
                     right-4
                     top-1/2
+                    z-10
                     -translate-y-1/2
                     text-xl
-                    text-gray-400
                   "
                 >
                   🔒
@@ -348,7 +380,7 @@ export default function LoginPage() {
                     border-gray-300
                     bg-white
                     px-12
-                    pl-12
+                    text-right
                     text-base
                     text-[#09213a]
                     outline-none
@@ -399,6 +431,7 @@ export default function LoginPage() {
                 justify-between
                 gap-3
                 text-sm
+
                 sm:text-base
               "
             >
@@ -530,7 +563,7 @@ export default function LoginPage() {
             </div>
 
             {/* =================================================
-                TECHNICAL SUPPORT
+                SUPPORT
             ================================================= */}
 
             <button
@@ -579,17 +612,16 @@ export default function LoginPage() {
 
         <footer
           className="
-            mt-8
+            mt-6
             w-full
             max-w-[450px]
-            border-t
-            border-white/20
-            py-4
+            px-4
+            pb-6
             text-center
             text-xs
             text-white/80
 
-            sm:mt-10
+            sm:mt-8
             sm:text-sm
           "
         >
@@ -637,7 +669,7 @@ export default function LoginPage() {
           className="
             fixed
             inset-0
-            z-50
+            z-[100]
             flex
             items-center
             justify-center
