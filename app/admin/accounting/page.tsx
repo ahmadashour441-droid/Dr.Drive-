@@ -36,6 +36,8 @@ type Transaction = {
     is_captain: boolean;
 
     is_producer: boolean;
+
+    wallet_balance: number;
   } | null;
 
   order: {
@@ -63,6 +65,8 @@ type UserSummary = {
   phone: string;
 
   active: boolean;
+
+  wallet_balance: number;
 
   credit: number;
 
@@ -112,7 +116,8 @@ export default function AccountingPage() {
             phone,
             status,
             is_captain,
-            is_producer
+            is_producer,
+            wallet_balance
           ),
           order:Orders(
             id,
@@ -162,15 +167,30 @@ export default function AccountingPage() {
       if (!map.has(trx.user.id)) {
         map.set(trx.user.id, {
           id: trx.user.id,
+
           name: trx.user.full_name,
+
           role: trx.user.is_captain
             ? "كابتن"
             : "منتج",
-          phone: trx.user.phone ?? "",
-          active: trx.user.status,
+
+          phone:
+            trx.user.phone ?? "",
+
+          active:
+            trx.user.status,
+
+          wallet_balance:
+            Number(
+              trx.user.wallet_balance ?? 0
+            ),
+
           credit: 0,
+
           debit: 0,
+
           balance: 0,
+
           transactions: [],
         });
       }
@@ -188,6 +208,10 @@ export default function AccountingPage() {
         );
       }
 
+      /*
+       * هذا الرصيد المحاسبي يبقى كما هو.
+       * لا نستخدمه كرصيد المحفظة.
+       */
       user.balance =
         user.credit - user.debit;
 
@@ -342,16 +366,7 @@ export default function AccountingPage() {
   /*
    * إغلاق الأسبوع
    *
-   * مهم:
    * لا نعدّل wallet_balance هنا.
-   *
-   * الصفحة تستدعي API السيرفر،
-   * والـAPI يستخدم Service Role لإغلاق:
-   *
-   * BalanceTransactions
-   * Orders
-   *
-   * فقط.
    */
   async function closeWeek() {
     try {
@@ -571,7 +586,7 @@ export default function AccountingPage() {
               </th>
 
               <th className="text-center">
-                الرصيد
+                رصيد المحفظة
               </th>
 
               <th className="text-center">
@@ -615,12 +630,12 @@ export default function AccountingPage() {
 
                 <td
                   className={`text-center font-bold ${
-                    user.balance >= 0
+                    user.wallet_balance >= 0
                       ? "text-green-600"
                       : "text-red-600"
                   }`}
                 >
-                  {user.balance.toFixed(2)} JD
+                  {user.wallet_balance.toFixed(2)} JD
                 </td>
 
                 <td className="text-center">
@@ -711,7 +726,7 @@ export default function AccountingPage() {
 
             </div>
 
-            <div className="grid gap-5 p-6 md:grid-cols-3">
+            <div className="grid gap-5 p-6 md:grid-cols-4">
 
               <div className="rounded-xl bg-green-50 p-5">
 
@@ -740,7 +755,7 @@ export default function AccountingPage() {
               <div className="rounded-xl bg-blue-50 p-5">
 
                 <p className="text-gray-500">
-                  الرصيد الحالي
+                  صافي الحساب
                 </p>
 
                 <h2
@@ -751,6 +766,24 @@ export default function AccountingPage() {
                   }`}
                 >
                   {selectedUser.balance.toFixed(2)} JD
+                </h2>
+
+              </div>
+
+              <div className="rounded-xl bg-purple-50 p-5">
+
+                <p className="text-gray-500">
+                  رصيد المحفظة
+                </p>
+
+                <h2
+                  className={`mt-3 text-3xl font-bold ${
+                    selectedUser.wallet_balance >= 0
+                      ? "text-green-600"
+                      : "text-red-600"
+                  }`}
+                >
+                  {selectedUser.wallet_balance.toFixed(2)} JD
                 </h2>
 
               </div>
