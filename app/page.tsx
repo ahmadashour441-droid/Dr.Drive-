@@ -91,32 +91,32 @@ export default function LoginPage() {
     <main
       dir="rtl"
       className="
-        min-h-screen
+        min-h-[100dvh]
         w-full
+        overflow-x-hidden
         bg-[#071E36]
       "
     >
 
       {/* =====================================================
-          الصفحة الرئيسية
-          الصورة الأصلية 2:3
+          BACKGROUND
+          تغطي الشاشة كاملة بدون فراغ كحلي أسفل الصورة
       ===================================================== */}
 
       <div
         className="
           relative
-          mx-auto
+          min-h-[100dvh]
           w-full
           overflow-hidden
           bg-[#071E36]
+          bg-cover
+          bg-center
+          bg-no-repeat
         "
         style={{
-          aspectRatio: "2 / 3",
           backgroundImage:
             "url('/login-bg.png')",
-          backgroundSize: "100% 100%",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
         }}
       >
 
@@ -128,8 +128,9 @@ export default function LoginPage() {
           className="
             absolute
             left-1/2
-            top-[37%]
+            top-[43%]
             w-[63%]
+            max-w-[620px]
             -translate-x-1/2
           "
         >
@@ -137,17 +138,22 @@ export default function LoginPage() {
           <div
             className="
               relative
-              rounded-[24px]
+              w-full
+              rounded-[26px]
+              border
+              border-white/70
               bg-white/95
               px-[6%]
               pb-[5%]
-              pt-[10%]
-              shadow-2xl
+              pt-[14%]
+              shadow-[0_20px_60px_rgba(0,0,0,.28)]
+              backdrop-blur-sm
             "
           >
 
             {/* =================================================
-                ICON
+                CAPTAIN ICON
+                مرفوعة فوق الكرت
             ================================================= */}
 
             <div
@@ -155,37 +161,54 @@ export default function LoginPage() {
                 absolute
                 left-1/2
                 top-0
+                z-20
                 flex
-                h-[78px]
-                w-[78px]
+                h-[82px]
+                w-[82px]
                 -translate-x-1/2
-                -translate-y-1/2
+                -translate-y-[72%]
                 items-center
                 justify-center
                 rounded-full
-                border-[5px]
+                border-[6px]
                 border-white
                 bg-[#071E36]
-                shadow-xl
+                shadow-[0_10px_30px_rgba(0,0,0,.30)]
+                sm:h-[110px]
+                sm:w-[110px]
+                sm:-translate-y-[68%]
               "
             >
-              <span className="text-[42px]">
+
+              <span
+                className="
+                  text-[43px]
+                  leading-none
+                  sm:text-[58px]
+                "
+              >
                 👨‍✈️
               </span>
+
             </div>
 
             {/* =================================================
                 TITLE
             ================================================= */}
 
-            <div className="text-center">
+            <div
+              className="
+                text-center
+              "
+            >
 
               <h1
                 className="
-                  text-[22px]
+                  text-[23px]
                   font-black
                   leading-tight
                   text-[#071E36]
+                  sm:text-[34px]
                 "
               >
                 مرحباً بك
@@ -193,10 +216,11 @@ export default function LoginPage() {
 
               <p
                 className="
-                  mt-1
-                  text-[12px]
+                  mt-2
+                  text-[13px]
                   font-semibold
                   text-slate-500
+                  sm:text-[18px]
                 "
               >
                 تسجيل الدخول إلى حسابك
@@ -210,7 +234,12 @@ export default function LoginPage() {
 
             <form
               onSubmit={handleLogin}
-              className="mt-4 space-y-2"
+              className="
+                mt-5
+                space-y-2.5
+                sm:mt-6
+                sm:space-y-3
+              "
             >
 
               {/* PHONE */}
@@ -218,23 +247,33 @@ export default function LoginPage() {
               <div
                 className="
                   flex
-                  h-[45px]
+                  h-[48px]
+                  w-full
                   items-center
-                  rounded-[13px]
+                  rounded-[14px]
                   border
                   border-slate-300
                   bg-white
                   px-3
+                  shadow-sm
+                  sm:h-[60px]
                 "
               >
 
-                <span className="ml-2 text-[18px]">
+                <span
+                  className="
+                    ml-2
+                    text-[19px]
+                    sm:text-[23px]
+                  "
+                >
                   👤
                 </span>
 
                 <input
                   type="tel"
                   inputMode="tel"
+                  dir="rtl"
                   value={phone}
                   onChange={(e) =>
                     setPhone(e.target.value)
@@ -252,6 +291,7 @@ export default function LoginPage() {
                     text-[#071E36]
                     outline-none
                     placeholder:text-slate-400
+                    sm:text-[18px]
                   "
                 />
 
@@ -262,17 +302,26 @@ export default function LoginPage() {
               <div
                 className="
                   flex
-                  h-[45px]
+                  h-[48px]
+                  w-full
                   items-center
-                  rounded-[13px]
+                  rounded-[14px]
                   border
                   border-slate-300
                   bg-white
                   px-3
+                  shadow-sm
+                  sm:h-[60px]
                 "
               >
 
-                <span className="ml-2 text-[18px]">
+                <span
+                  className="
+                    ml-2
+                    text-[18px]
+                    sm:text-[23px]
+                  "
+                >
                   🔒
                 </span>
 
@@ -299,6 +348,7 @@ export default function LoginPage() {
                     text-[#071E36]
                     outline-none
                     placeholder:text-slate-400
+                    sm:text-[18px]
                   "
                 />
 
@@ -309,7 +359,17 @@ export default function LoginPage() {
                       (value) => !value
                     )
                   }
-                  className="mr-1 text-[18px]"
+                  className="
+                    mr-1
+                    shrink-0
+                    text-[18px]
+                    sm:text-[22px]
+                  "
+                  aria-label={
+                    showPassword
+                      ? "إخفاء كلمة المرور"
+                      : "إظهار كلمة المرور"
+                  }
                 >
                   {showPassword
                     ? "🙈"
@@ -333,11 +393,13 @@ export default function LoginPage() {
                 <label
                   className="
                     flex
+                    cursor-pointer
                     items-center
-                    gap-1
+                    gap-1.5
                     text-[12px]
                     font-semibold
                     text-[#071E36]
+                    sm:text-[16px]
                   "
                 >
 
@@ -353,6 +415,8 @@ export default function LoginPage() {
                       h-4
                       w-4
                       accent-[#F5B82E]
+                      sm:h-5
+                      sm:w-5
                     "
                   />
 
@@ -371,6 +435,7 @@ export default function LoginPage() {
                     text-[12px]
                     font-bold
                     text-blue-600
+                    sm:text-[16px]
                   "
                 >
                   نسيت كلمة المرور؟
@@ -378,27 +443,30 @@ export default function LoginPage() {
 
               </div>
 
-              {/* LOGIN */}
+              {/* LOGIN BUTTON */}
 
               <button
                 type="submit"
                 disabled={loading}
                 className="
                   flex
-                  h-[50px]
+                  h-[52px]
                   w-full
                   items-center
                   justify-center
                   gap-3
-                  rounded-[14px]
+                  rounded-[15px]
                   bg-[#F5B82E]
-                  text-[18px]
+                  text-[19px]
                   font-black
                   text-[#071E36]
-                  shadow-lg
+                  shadow-[0_8px_20px_rgba(245,184,46,.25)]
                   transition
                   active:scale-[.99]
+                  disabled:cursor-not-allowed
                   disabled:opacity-60
+                  sm:h-[64px]
+                  sm:text-[23px]
                 "
               >
 
@@ -409,7 +477,7 @@ export default function LoginPage() {
                 </span>
 
                 {!loading && (
-                  <span className="text-[22px]">
+                  <span className="text-[24px]">
                     ←
                   </span>
                 )}
@@ -428,6 +496,7 @@ export default function LoginPage() {
                 flex
                 items-center
                 gap-2
+                sm:my-4
               "
             >
 
@@ -438,6 +507,7 @@ export default function LoginPage() {
                   text-[12px]
                   font-semibold
                   text-slate-500
+                  sm:text-[16px]
                 "
               >
                 أو
@@ -456,23 +526,26 @@ export default function LoginPage() {
               onClick={callSupport}
               className="
                 flex
-                h-[47px]
+                h-[49px]
                 w-full
                 items-center
                 justify-center
                 gap-2
-                rounded-[13px]
-                border-2
+                rounded-[15px]
+                border-[2px]
                 border-[#071E36]
                 bg-white
                 text-[15px]
                 font-black
                 text-[#071E36]
+                transition
                 active:scale-[.99]
+                sm:h-[61px]
+                sm:text-[20px]
               "
             >
 
-              <span className="text-[18px]">
+              <span className="text-[18px] sm:text-[22px]">
                 🎧
               </span>
 
