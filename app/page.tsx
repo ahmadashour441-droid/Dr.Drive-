@@ -146,7 +146,7 @@ export default function LoginPage() {
 
         <div
           className="
-            mt-[390px]
+            mt-[470px]
             w-[calc(100%-32px)]
             max-w-[380px]
 
