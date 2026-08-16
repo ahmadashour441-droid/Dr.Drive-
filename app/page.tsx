@@ -12,39 +12,29 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showSupport, setShowSupport] = useState(false);
 
-  async function handleLogin(
-    e: React.FormEvent
-  ) {
+  async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
 
     setLoading(true);
 
     try {
-      const response = await fetch(
-        "/api/login",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
-          body: JSON.stringify({
-            phone,
-            code,
-          }),
-        }
-      );
+      const response = await fetch("/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          phone,
+          code,
+        }),
+      });
 
-      const result =
-        await response.json();
+      const result = await response.json();
 
       setLoading(false);
 
       if (!response.ok) {
-        alert(
-          result.error ||
-            "فشل تسجيل الدخول"
-        );
+        alert(result.error || "فشل تسجيل الدخول");
         return;
       }
 
@@ -55,11 +45,7 @@ export default function LoginPage() {
       }
     } catch (err) {
       setLoading(false);
-
-      alert(
-        "حدث خطأ أثناء تسجيل الدخول"
-      );
-
+      alert("حدث خطأ أثناء تسجيل الدخول");
       console.error(err);
     }
   }
@@ -67,118 +53,137 @@ export default function LoginPage() {
   return (
     <main
       dir="rtl"
-      className="relative min-h-screen overflow-hidden bg-[#07192b]"
+      className="relative min-h-[100svh] overflow-x-hidden bg-[#07192b]"
     >
-      {/* الخلفية */}
+      {/* =========================
+          BACKGROUND
+      ========================= */}
+
       <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        className="fixed inset-0 -z-10 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage:
-            "url('/login-bg.png')",
+          backgroundImage: "url('/login-bg.png')",
         }}
       />
 
-      {/* طبقة خفيفة فوق الخلفية */}
-      <div className="absolute inset-0 bg-black/10" />
+      {/* Dark overlay */}
+      <div className="fixed inset-0 -z-10 bg-black/10" />
 
-      <div className="relative z-10 min-h-screen px-4 py-8 sm:px-6 lg:px-10">
+      {/* =========================
+          PAGE
+      ========================= */}
 
-        {/* ================= LOGO / HEADER ================= */}
+      <div className="relative min-h-[100svh] px-3 py-6 sm:px-6 sm:py-8">
 
-        <div className="mx-auto max-w-6xl text-center">
+        {/* =========================
+            TOP TITLE
+        ========================= */}
 
-          <div className="flex items-center justify-center gap-2 text-5xl font-black sm:text-6xl">
-            <span className="text-yellow-400">
+        <section className="mx-auto w-full max-w-5xl text-center">
+
+          <h1
+            dir="ltr"
+            className="text-4xl font-black tracking-tight sm:text-5xl lg:text-6xl"
+          >
+            <span className="text-white">
               Dr.
             </span>
-
-            <span className="text-white">
+            <span className="text-yellow-400">
               Drive
             </span>
-          </div>
+          </h1>
 
-          <div className="mt-1 text-2xl font-bold text-yellow-400 sm:text-3xl">
+          <div className="mt-1 text-2xl font-black text-yellow-400 sm:text-3xl">
             وصلني الآن
           </div>
 
-          <div className="mx-auto mt-8 flex max-w-xl items-center gap-5">
+          <div className="mx-auto mt-5 flex max-w-2xl items-center gap-3 sm:mt-7 sm:gap-6">
+
             <div className="h-px flex-1 bg-white/70" />
 
-            <h1 className="text-3xl font-black text-white sm:text-4xl">
+            <h2 className="whitespace-nowrap text-2xl font-black text-white sm:text-3xl lg:text-4xl">
               منصة الكباتن
-            </h1>
+            </h2>
 
             <div className="h-px flex-1 bg-white/70" />
+
           </div>
 
-          <p className="mt-3 text-lg text-white/90 sm:text-xl">
+          <p className="mt-2 text-base font-semibold text-white/90 sm:text-lg">
             رحلتك معنا ... أكثر أمانًا وأسهل
           </p>
 
-        </div>
+        </section>
 
-        {/* ================= LOGIN CARD ================= */}
+        {/* =========================
+            LOGIN
+        ========================= */}
 
-        <div className="mx-auto mt-10 w-full max-w-xl">
+        <section className="mx-auto mt-6 w-full max-w-[560px] sm:mt-8 lg:mt-10">
 
           <form
             onSubmit={handleLogin}
-            className="rounded-[32px] border border-white/60 bg-white/95 p-6 shadow-2xl backdrop-blur-md sm:p-10"
+            className="relative rounded-[28px] border border-white/70 bg-white/95 px-5 pb-6 pt-20 shadow-2xl backdrop-blur-md sm:rounded-[32px] sm:px-9 sm:pb-8 sm:pt-24"
           >
 
-            {/* Captain Icon */}
+            {/* Captain icon */}
 
-            <div className="mx-auto flex h-32 w-32 items-center justify-center rounded-full border-[8px] border-white bg-[#09213a] shadow-xl">
+            <div className="absolute left-1/2 top-[-58px] flex h-[116px] w-[116px] -translate-x-1/2 items-center justify-center rounded-full border-[8px] border-white bg-[#09213a] shadow-xl sm:top-[-65px] sm:h-[130px] sm:w-[130px]">
 
-              <div className="text-6xl">
+              <span className="text-[58px] sm:text-[64px]">
                 👨‍✈️
-              </div>
+              </span>
 
             </div>
 
-            <h2 className="mt-7 text-center text-4xl font-black text-[#09213a]">
-              مرحبًا بك
-            </h2>
+            {/* Heading */}
 
-            <p className="mt-2 text-center text-lg text-gray-500">
-              تسجيل الدخول إلى حسابك
-            </p>
+            <div className="text-center">
 
-            {/* PHONE */}
+              <h3 className="text-3xl font-black text-[#09213a] sm:text-4xl">
+                مرحبًا بك
+              </h3>
 
-            <div className="mt-8">
+              <p className="mt-2 text-base text-gray-500 sm:text-lg">
+                تسجيل الدخول إلى حسابك
+              </p>
+
+            </div>
+
+            {/* Phone */}
+
+            <div className="mt-7 sm:mt-8">
 
               <div className="relative">
 
-                <span className="absolute right-5 top-1/2 -translate-y-1/2 text-2xl text-gray-500">
+                <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xl text-gray-400 sm:right-5 sm:text-2xl">
                   👤
                 </span>
 
                 <input
                   type="text"
                   inputMode="tel"
+                  autoComplete="tel"
                   value={phone}
                   onChange={(e) =>
-                    setPhone(
-                      e.target.value
-                    )
+                    setPhone(e.target.value)
                   }
                   placeholder="رقم الكابتن"
                   disabled={loading}
-                  className="h-16 w-full rounded-2xl border border-gray-300 bg-white px-14 text-lg text-[#09213a] outline-none transition placeholder:text-gray-400 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-200 disabled:bg-gray-100"
+                  className="h-14 w-full rounded-2xl border border-gray-300 bg-white px-12 text-base text-[#09213a] outline-none transition placeholder:text-gray-400 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-200 sm:h-16 sm:text-lg"
                 />
 
               </div>
 
             </div>
 
-            {/* PASSWORD */}
+            {/* Password */}
 
-            <div className="mt-5">
+            <div className="mt-4">
 
               <div className="relative">
 
-                <span className="absolute right-5 top-1/2 -translate-y-1/2 text-2xl text-gray-500">
+                <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xl text-gray-400 sm:right-5 sm:text-2xl">
                   🔒
                 </span>
 
@@ -190,24 +195,23 @@ export default function LoginPage() {
                   }
                   value={code}
                   onChange={(e) =>
-                    setCode(
-                      e.target.value
-                    )
+                    setCode(e.target.value)
                   }
                   placeholder="كلمة المرور"
                   disabled={loading}
-                  className="h-16 w-full rounded-2xl border border-gray-300 bg-white px-14 pl-14 text-lg text-[#09213a] outline-none transition placeholder:text-gray-400 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-200 disabled:bg-gray-100"
+                  className="h-14 w-full rounded-2xl border border-gray-300 bg-white px-12 pl-14 text-base text-[#09213a] outline-none transition placeholder:text-gray-400 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-200 sm:h-16 sm:text-lg"
                 />
 
                 <button
                   type="button"
+                  tabIndex={-1}
                   onClick={() =>
                     setShowPassword(
                       !showPassword
                     )
                   }
-                  className="absolute left-5 top-1/2 -translate-y-1/2 text-2xl text-gray-500"
-                  tabIndex={-1}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-xl text-gray-500 sm:left-5 sm:text-2xl"
+                  aria-label="إظهار كلمة المرور"
                 >
                   {showPassword
                     ? "🙈"
@@ -218,9 +222,9 @@ export default function LoginPage() {
 
             </div>
 
-            {/* REMEMBER / FORGOT */}
+            {/* Remember / Forgot */}
 
-            <div className="mt-5 flex items-center justify-between text-sm">
+            <div className="mt-4 flex items-center justify-between gap-3 text-sm sm:mt-5 sm:text-base">
 
               <button
                 type="button"
@@ -232,7 +236,7 @@ export default function LoginPage() {
                 نسيت كلمة المرور؟
               </button>
 
-              <label className="flex cursor-pointer items-center gap-2 font-semibold text-gray-700">
+              <label className="flex shrink-0 cursor-pointer items-center gap-2 font-semibold text-gray-700">
 
                 <span>
                   تذكرني
@@ -240,26 +244,26 @@ export default function LoginPage() {
 
                 <input
                   type="checkbox"
-                  className="h-5 w-5 rounded border-gray-300 accent-yellow-400"
+                  className="h-5 w-5 accent-yellow-400"
                 />
 
               </label>
 
             </div>
 
-            {/* LOGIN BUTTON */}
+            {/* Login button */}
 
             <button
               type="submit"
               disabled={loading}
-              className="mt-6 flex h-16 w-full items-center justify-center gap-4 rounded-2xl bg-gradient-to-r from-yellow-400 to-yellow-500 text-xl font-black text-[#09213a] shadow-lg transition hover:scale-[1.01] hover:from-yellow-300 hover:to-yellow-400 disabled:cursor-not-allowed disabled:opacity-60"
+              className="mt-5 flex h-14 w-full items-center justify-center gap-4 rounded-2xl bg-yellow-400 text-lg font-black text-[#09213a] shadow-lg transition hover:bg-yellow-300 disabled:cursor-not-allowed disabled:opacity-60 sm:h-16 sm:text-xl"
             >
               {loading
                 ? "جاري تسجيل الدخول..."
                 : "تسجيل الدخول"}
 
               {!loading && (
-                <span className="text-3xl">
+                <span className="text-2xl">
                   ←
                 </span>
               )}
@@ -267,11 +271,11 @@ export default function LoginPage() {
 
             {/* OR */}
 
-            <div className="my-7 flex items-center gap-4">
+            <div className="my-5 flex items-center gap-4 sm:my-6">
 
               <div className="h-px flex-1 bg-gray-300" />
 
-              <span className="text-gray-500">
+              <span className="text-sm text-gray-500">
                 أو
               </span>
 
@@ -279,16 +283,16 @@ export default function LoginPage() {
 
             </div>
 
-            {/* SUPPORT */}
+            {/* Support */}
 
             <button
               type="button"
               onClick={() =>
                 setShowSupport(true)
               }
-              className="flex h-14 w-full items-center justify-center gap-3 rounded-2xl border-2 border-[#09213a] bg-white text-lg font-bold text-[#09213a] transition hover:bg-[#09213a] hover:text-white"
+              className="flex h-13 w-full items-center justify-center gap-3 rounded-2xl border-2 border-[#09213a] bg-white py-3 text-base font-bold text-[#09213a] transition hover:bg-[#09213a] hover:text-white sm:h-14 sm:text-lg"
             >
-              <span className="text-2xl">
+              <span className="text-xl sm:text-2xl">
                 🎧
               </span>
 
@@ -297,23 +301,25 @@ export default function LoginPage() {
 
           </form>
 
-        </div>
+        </section>
 
-        {/* ================= FEATURES ================= */}
+        {/* =========================
+            FEATURES
+        ========================= */}
 
-        <div className="mx-auto mt-10 grid max-w-5xl grid-cols-1 gap-8 text-center sm:grid-cols-3">
+        <section className="mx-auto mt-7 grid w-full max-w-5xl grid-cols-3 gap-2 text-center sm:mt-10 sm:gap-6">
 
           <div className="text-white">
 
-            <div className="text-5xl">
+            <div className="text-3xl sm:text-5xl">
               🛡️
             </div>
 
-            <h3 className="mt-3 text-xl font-black">
+            <h3 className="mt-2 text-sm font-black sm:text-xl">
               آمن وموثوق
             </h3>
 
-            <p className="mt-1 text-sm text-white/80">
+            <p className="mt-1 hidden text-sm text-white/80 sm:block">
               حماية بياناتك
               <br />
               تحت أعلى معايير الأمان
@@ -323,15 +329,15 @@ export default function LoginPage() {
 
           <div className="text-white">
 
-            <div className="text-5xl">
+            <div className="text-3xl sm:text-5xl">
               🕐
             </div>
 
-            <h3 className="mt-3 text-xl font-black">
+            <h3 className="mt-2 text-sm font-black sm:text-xl">
               متابعة لحظية
             </h3>
 
-            <p className="mt-1 text-sm text-white/80">
+            <p className="mt-1 hidden text-sm text-white/80 sm:block">
               تتبع طلباتك وأرباحك
               <br />
               في الوقت الحقيقي
@@ -341,15 +347,15 @@ export default function LoginPage() {
 
           <div className="text-white">
 
-            <div className="text-5xl">
+            <div className="text-3xl sm:text-5xl">
               👛
             </div>
 
-            <h3 className="mt-3 text-xl font-black">
+            <h3 className="mt-2 text-sm font-black sm:text-xl">
               سهولة ومرونة
             </h3>
 
-            <p className="mt-1 text-sm text-white/80">
+            <p className="mt-1 hidden text-sm text-white/80 sm:block">
               إدارة رصيدك وطلباتك
               <br />
               بكل سهولة
@@ -357,30 +363,34 @@ export default function LoginPage() {
 
           </div>
 
-        </div>
+        </section>
 
-        {/* ================= FOOTER ================= */}
+        {/* =========================
+            FOOTER
+        ========================= */}
 
-        <div className="mx-auto mt-10 max-w-5xl border-t border-white/20 py-5">
+        <footer className="mx-auto mt-7 w-full max-w-5xl border-t border-white/20 py-4 text-center text-xs text-white/80 sm:mt-10 sm:text-sm">
 
-          <div className="flex flex-col items-center justify-between gap-3 text-sm text-white/80 sm:flex-row">
+          <div className="flex flex-col items-center justify-between gap-2 sm:flex-row">
 
-            <div className="text-xl font-black">
-              <span className="text-yellow-400">
+            <div
+              dir="ltr"
+              className="font-black"
+            >
+              <span className="text-white">
                 Dr.
               </span>
-              <span className="text-white">
+              <span className="text-yellow-400">
                 Drive
               </span>
 
-              <div className="text-xs text-yellow-400">
+              <span className="mr-2 text-yellow-400">
                 وصلني الآن
-              </div>
+              </span>
             </div>
 
             <div>
-              © 2025 Dr.Drive -
-              جميع الحقوق محفوظة
+              © 2025 Dr.Drive - جميع الحقوق محفوظة
             </div>
 
             <div>
@@ -389,18 +399,20 @@ export default function LoginPage() {
 
           </div>
 
-        </div>
+        </footer>
 
       </div>
 
-      {/* ================= SUPPORT MODAL ================= */}
+      {/* =========================
+          SUPPORT MODAL
+      ========================= */}
 
       {showSupport && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-5">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
 
           <div
             dir="rtl"
-            className="w-full max-w-md rounded-3xl bg-white p-7 shadow-2xl"
+            className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl sm:p-7"
           >
 
             <h2 className="text-2xl font-black text-[#09213a]">
