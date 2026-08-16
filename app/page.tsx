@@ -164,7 +164,7 @@ export default function LoginPage() {
 
         <div
           className="
-            mt-[420px]
+            mt-[720px]
             flex
             w-full
             justify-center
