@@ -77,7 +77,7 @@ export default function LoginPage() {
       }
     } catch (error) {
       console.error(error);
-      alert("حدث خطأ أثناء تسجيل الدخول");
+      alert(verflow-x-hidden"حدث خطأ أثناء تسجيل الدخول");
     } finally {
       setLoading(false);
     }
@@ -91,18 +91,24 @@ export default function LoginPage() {
     <main
       dir="rtl"
       className="
-        min-h-[100svh]
+        min-h-[100dvh]
         w-full
-        overflow-hidden
+        o
         bg-[#071E36]
       "
     >
+
+      {/* =====================================================
+          BACKGROUND
+          تغطي الشاشة كاملة بدون فراغ كحلي أسفل الصورة
+      ===================================================== */}
+
       <div
         className="
           relative
-          min-h-[100svh]
+          min-h-[100dvh]
           w-full
-          overflow-hidden
+          overflow-visible
           bg-[#071E36]
           bg-cover
           bg-center
@@ -114,130 +120,95 @@ export default function LoginPage() {
         }}
       >
 
-        {/* =====================================================
-            LOGIN CONTAINER
-        ===================================================== */}
+        {/* =================================================
+            LOGIN CARD
+        ================================================= */}
 
         <div
-          className="
-            absolute
-            left-1/2
-            top-[45%]
-            w-[88%]
-            -translate-x-1/2
-            -translate-y-1/2
-
-            sm:top-[47%]
-            sm:w-[72%]
-
-            md:top-[48%]
-            md:w-[58%]
-            md:max-w-[620px]
-
-            lg:w-[54%]
-            lg:max-w-[620px]
-          "
-        >
-
-          {/* ===================================================
-              CAPTAIN ICON
-              منفصلة تماماً عن الكارد
-          =================================================== */}
+  className="
+    absolute
+    left-1/2
+    top-[45%]
+    w-[63%]
+    max-w-[620px]
+    -translate-x-1/2
+  "
+>
 
           <div
             className="
-              absolute
-              left-1/2
-              top-[-82px]
-              z-30
-              -translate-x-1/2
-
-              sm:top-[-92px]
-
-              md:top-[-100px]
+              relative
+              w-full
+              rounded-[26px]
+              border
+              border-white/70
+              bg-white/95
+              px-[6%]
+              pb-[5%]
+              pt-[17%]
+              shadow-[0_20px_60px_rgba(0,0,0,.28)]
+              backdrop-blur-sm
             "
           >
+
+            {/* =================================================
+                CAPTAIN ICON
+                مرفوعة فوق الكرت
+            ================================================= */}
+
             <div
               className="
+                absolute
+                left-1/2
+                top-0
+                z-20
                 flex
-                h-[118px]
-                w-[118px]
+                h-[82px]
+                w-[82px]
+                -translate-x-1/2
+                -translate-y-[105%]
                 items-center
                 justify-center
                 rounded-full
-                border-[7px]
+                border-[6px]
                 border-white
                 bg-[#071E36]
-                shadow-[0_12px_35px_rgba(0,0,0,.32)]
-
-                sm:h-[130px]
-                sm:w-[130px]
-
-                md:h-[140px]
-                md:w-[140px]
+                shadow-[0_10px_30px_rgba(0,0,0,.30)]
+                sm:h-[110px]
+                sm:w-[110px]
+                sm:-translate-y-[95%]
               "
             >
+
               <span
                 className="
-                  select-none
-                  text-[58px]
+                  text-[43px]
                   leading-none
-
-                  sm:text-[65px]
-
-                  md:text-[70px]
+                  sm:text-[58px]
                 "
               >
                 👨‍✈️
               </span>
+
             </div>
-          </div>
-
-          {/* ===================================================
-              WHITE CARD
-          =================================================== */}
-
-          <section
-            className="
-              relative
-              w-full
-              rounded-[28px]
-              border
-              border-white/80
-              bg-white/[0.96]
-              px-5
-              pb-6
-              pt-[82px]
-              shadow-[0_25px_70px_rgba(0,0,0,.30)]
-              backdrop-blur-[4px]
-
-              sm:rounded-[30px]
-              sm:px-7
-              sm:pb-7
-              sm:pt-[88px]
-
-              md:px-8
-              md:pb-8
-              md:pt-[94px]
-            "
-          >
 
             {/* =================================================
                 TITLE
             ================================================= */}
 
-            <div className="mb-6 text-center">
+            <div
+              className="
+                text-center
+              "
+            >
 
               <h1
                 className="
-                  text-[30px]
+                  text-[23px]
                   font-black
-                  leading-none
-                  text-[#102F59]
-
+                  leading-tight
+                  text-[#071E36]
                   sm:text-[34px]
-
-                  md:text-[38px]
                 "
               >
                 مرحباً بك
@@ -245,14 +216,11 @@ export default function LoginPage() {
 
               <p
                 className="
-                  mt-3
-                  text-[15px]
+                  mt-2
+                  text-[13px]
                   font-semibold
                   text-slate-500
-
-                  sm:text-[17px]
-
-                  md:text-[18px]
+                  sm:text-[18px]
                 "
               >
                 تسجيل الدخول إلى حسابك
@@ -267,43 +235,36 @@ export default function LoginPage() {
             <form
               onSubmit={handleLogin}
               className="
-                space-y-3
+                mt-5
+                space-y-2.5
+                sm:mt-6
+                sm:space-y-3
               "
             >
 
-              {/* =================================================
-                  PHONE
-              ================================================= */}
+              {/* PHONE */}
 
               <div
                 className="
                   flex
-                  h-[60px]
+                  h-[48px]
                   w-full
                   items-center
-                  rounded-[17px]
+                  rounded-[14px]
                   border
                   border-slate-300
                   bg-white
-                  px-4
+                  px-3
                   shadow-sm
-                  transition
-
-                  focus-within:border-[#F5B82E]
-                  focus-within:ring-4
-                  focus-within:ring-[#F5B82E]/15
-
-                  sm:h-[64px]
-
-                  md:h-[66px]
+                  sm:h-[60px]
                 "
               >
 
                 <span
                   className="
-                    ml-3
-                    select-none
-                    text-[25px]
+                    ml-2
+                    text-[19px]
+                    sm:text-[23px]
                   "
                 >
                   👤
@@ -325,69 +286,44 @@ export default function LoginPage() {
                     flex-1
                     bg-transparent
                     text-right
-                    text-[16px]
+                    text-[14px]
                     font-semibold
                     text-[#071E36]
                     outline-none
                     placeholder:text-slate-400
-
                     sm:text-[18px]
                   "
                 />
 
               </div>
 
-              {/* =================================================
-                  PASSWORD
-              ================================================= */}
+              {/* PASSWORD */}
 
               <div
                 className="
                   flex
-                  h-[60px]
+                  h-[48px]
                   w-full
                   items-center
-                  rounded-[17px]
+                  rounded-[14px]
                   border
                   border-slate-300
                   bg-white
-                  px-4
+                  px-3
                   shadow-sm
-                  transition
-
-                  focus-within:border-[#F5B82E]
-                  focus-within:ring-4
-                  focus-within:ring-[#F5B82E]/15
-
-                  sm:h-[64px]
-
-                  md:h-[66px]
+                  sm:h-[60px]
                 "
               >
 
-                <button
-                  type="button"
-                  onClick={() =>
-                    setShowPassword(
-                      (value) => !value
-                    )
-                  }
+                <span
                   className="
-                    ml-3
-                    shrink-0
-                    select-none
-                    text-[24px]
+                    ml-2
+                    text-[18px]
+                    sm:text-[23px]
                   "
-                  aria-label={
-                    showPassword
-                      ? "إخفاء كلمة المرور"
-                      : "إظهار كلمة المرور"
-                  }
                 >
-                  {showPassword
-                    ? "🙈"
-                    : "👁️"}
-                </button>
+                  🔒
+                </span>
 
                 <input
                   type={
@@ -407,77 +343,65 @@ export default function LoginPage() {
                     flex-1
                     bg-transparent
                     text-right
-                    text-[16px]
+                    text-[14px]
                     font-semibold
                     text-[#071E36]
                     outline-none
                     placeholder:text-slate-400
-
                     sm:text-[18px]
                   "
                 />
 
-                <span
+                <button
+                  type="button"
+                  onClick={() =>
+                    setShowPassword(
+                      (value) => !value
+                    )
+                  }
                   className="
-                    mr-2
-                    select-none
-                    text-[24px]
+                    mr-1
+                    shrink-0
+                    text-[18px]
+                    sm:text-[22px]
                   "
+                  aria-label={
+                    showPassword
+                      ? "إخفاء كلمة المرور"
+                      : "إظهار كلمة المرور"
+                  }
                 >
-                  🔒
-                </span>
+                  {showPassword
+                    ? "🙈"
+                    : "👁️"}
+                </button>
 
               </div>
 
-              {/* =================================================
-                  REMEMBER / FORGOT
-              ================================================= */}
+              {/* REMEMBER / FORGOT */}
 
               <div
                 className="
                   flex
-                  min-h-[35px]
                   items-center
                   justify-between
-                  gap-3
+                  gap-2
                   px-1
                 "
               >
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    alert(
-                      "لإعادة تعيين كلمة المرور، يرجى التواصل مع الدعم الفني."
-                    )
-                  }
-                  className="
-                    text-[13px]
-                    font-bold
-                    text-blue-600
-                    hover:text-blue-700
-
-                    sm:text-[16px]
-                  "
-                >
-                  نسيت كلمة المرور؟
-                </button>
 
                 <label
                   className="
                     flex
                     cursor-pointer
                     items-center
-                    gap-2
-                    text-[14px]
-                    font-bold
+                    gap-1.5
+                    text-[12px]
+                    font-semibold
                     text-[#071E36]
-
                     sm:text-[16px]
                   "
                 >
-
-                  تذكرني
 
                   <input
                     type="checkbox"
@@ -488,44 +412,60 @@ export default function LoginPage() {
                       )
                     }
                     className="
-                      h-5
-                      w-5
-                      cursor-pointer
+                      h-4
+                      w-4
                       accent-[#F5B82E]
+                      sm:h-5
+                      sm:w-5
                     "
                   />
 
+                  تذكرني
+
                 </label>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    alert(
+                      "لإعادة تعيين كلمة المرور، يرجى التواصل مع الدعم الفني."
+                    )
+                  }
+                  className="
+                    text-[12px]
+                    font-bold
+                    text-blue-600
+                    sm:text-[16px]
+                  "
+                >
+                  نسيت كلمة المرور؟
+                </button>
 
               </div>
 
-              {/* =================================================
-                  LOGIN BUTTON
-              ================================================= */}
+              {/* LOGIN BUTTON */}
 
               <button
                 type="submit"
                 disabled={loading}
                 className="
                   flex
-                  h-[62px]
+                  h-[52px]
                   w-full
                   items-center
                   justify-center
-                  gap-4
-                  rounded-[17px]
+                  gap-3
+                  rounded-[15px]
                   bg-[#F5B82E]
-                  text-[21px]
+                  text-[19px]
                   font-black
                   text-[#071E36]
-                  shadow-[0_9px_24px_rgba(245,184,46,.27)]
+                  shadow-[0_8px_20px_rgba(245,184,46,.25)]
                   transition
-                  hover:bg-[#F8C13A]
                   active:scale-[.99]
                   disabled:cursor-not-allowed
                   disabled:opacity-60
-
-                  sm:h-[66px]
+                  sm:h-[64px]
                   sm:text-[23px]
                 "
               >
@@ -537,12 +477,7 @@ export default function LoginPage() {
                 </span>
 
                 {!loading && (
-                  <span
-                    className="
-                      text-[27px]
-                      leading-none
-                    "
-                  >
+                  <span className="text-[24px]">
                     ←
                   </span>
                 )}
@@ -552,17 +487,16 @@ export default function LoginPage() {
             </form>
 
             {/* =================================================
-                DIVIDER
+                OR
             ================================================= */}
 
             <div
               className="
-                my-4
+                my-3
                 flex
                 items-center
-                gap-3
-
-                sm:my-5
+                gap-2
+                sm:my-4
               "
             >
 
@@ -570,10 +504,9 @@ export default function LoginPage() {
 
               <span
                 className="
-                  text-[14px]
+                  text-[12px]
                   font-semibold
-                  text-slate-400
-
+                  text-slate-500
                   sm:text-[16px]
                 "
               >
@@ -593,43 +526,41 @@ export default function LoginPage() {
               onClick={callSupport}
               className="
                 flex
-                h-[60px]
+                h-[49px]
                 w-full
                 items-center
                 justify-center
-                gap-3
-                rounded-[17px]
-                border-2
-                border-[#102F59]
+                gap-2
+                rounded-[15px]
+                border-[2px]
+                border-[#071E36]
                 bg-white
-                text-[17px]
+                text-[15px]
                 font-black
-                text-[#102F59]
+                text-[#071E36]
                 transition
-                hover:bg-slate-50
                 active:scale-[.99]
-
-                sm:h-[64px]
+                sm:h-[61px]
                 sm:text-[20px]
               "
             >
 
-              <span
-                className="
-                  select-none
-                  text-[23px]
-                "
-              >
+              <span className="text-[18px] sm:text-[22px]">
                 🎧
               </span>
 
-              تواصل مع الدعم الفني
+              <span>
+                تواصل مع الدعم الفني
+              </span>
 
             </button>
 
-          </section>
+          </div>
+
         </div>
+
       </div>
+
     </main>
   );
 }
