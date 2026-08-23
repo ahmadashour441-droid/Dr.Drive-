@@ -2,7 +2,15 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { supabaseServer } from "@/lib/supabaseServer";
 
-export default async function CaptainAccountingPage() {
+export default async function CaptainAccountingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{
+    withdrawal?: string;
+  }>;
+}) {
+  const params = await searchParams;
+
   const cookieStore = await cookies();
 
   const session = cookieStore.get("drdrive_session");
@@ -117,34 +125,29 @@ export default async function CaptainAccountingPage() {
         ).length
       : 0;
 
+  /* =========================
+     PENDING WITHDRAWAL
+  ========================= */
+
+  const pendingWithdrawal =
+    isProducer
+      ? allWithdrawals.find(
+          (request: any) =>
+            request.status === "pending"
+        )
+      : null;
+
+  const hasPendingWithdrawal =
+    Boolean(pendingWithdrawal);
+
   /*
-   * الطلبات المعلقة نحجز قيمتها من المتاح
-   * حتى لا يستطيع المنتج طلب نفس الرصيد
-   * أكثر من مرة.
+   * طالما يوجد طلب معلق،
+   * لا يمكن إنشاء طلب جديد.
    */
 
-  const pendingWithdrawalAmount =
-    isProducer
-      ? allWithdrawals
-          .filter(
-            (request: any) =>
-              request.status === "pending"
-          )
-          .reduce(
-            (sum: number, request: any) =>
-              sum +
-              Number(request.amount ?? 0),
-            0
-          )
-      : 0;
-
   const availableForWithdrawal =
-    isProducer
-      ? Math.max(
-          0,
-          walletBalance -
-            pendingWithdrawalAmount
-        )
+    isProducer && !hasPendingWithdrawal
+      ? Math.max(0, walletBalance)
       : 0;
 
   /* =========================
@@ -207,6 +210,39 @@ export default async function CaptainAccountingPage() {
     }
 
     /* =========================
+       التأكد من عدم وجود
+       طلب سحب معلق
+    ========================= */
+
+    const {
+      data: existingPendingRequest,
+      error: pendingCheckError,
+    } = await supabaseServer
+      .from("WithdrawalRequests")
+      .select("id")
+      .eq("user_id", sessionUser.id)
+      .eq("status", "pending")
+      .limit(1)
+      .maybeSingle();
+
+    if (pendingCheckError) {
+      console.error(
+        "Pending withdrawal check error:",
+        pendingCheckError
+      );
+
+      redirect(
+        "/dashboard/accounting?withdrawal=error"
+      );
+    }
+
+    if (existingPendingRequest) {
+      redirect(
+        "/dashboard/accounting?withdrawal=pending"
+      );
+    }
+
+    /* =========================
        قراءة المبلغ
     ========================= */
 
@@ -228,51 +264,16 @@ export default async function CaptainAccountingPage() {
     );
 
     /* =========================
-       إعادة قراءة الطلبات المعلقة
-       لمنع تكرار السحب
+       قراءة الرصيد الحالي
     ========================= */
 
-    const {
-      data: pendingRequests,
-      error: pendingError,
-    } = await supabaseServer
-      .from("WithdrawalRequests")
-      .select("amount")
-      .eq("user_id", sessionUser.id)
-      .eq("status", "pending");
-
-    if (pendingError) {
-      console.error(
-        "Pending withdrawals error:",
-        pendingError
-      );
-
-      redirect(
-        "/dashboard/accounting?withdrawal=error"
-      );
-    }
-
-    const pendingAmount =
-      (pendingRequests ?? []).reduce(
-        (sum: number, request: any) =>
-          sum +
-          Number(request.amount ?? 0),
-        0
-      );
-
-    const walletBalance = Number(
+    const currentWalletBalance = Number(
       dbUser.wallet_balance ?? 0
     );
 
-    const availableAmount =
-      Math.max(
-        0,
-        walletBalance - pendingAmount
-      );
-
     if (
       withdrawalAmount >
-      availableAmount
+      currentWalletBalance
     ) {
       redirect(
         "/dashboard/accounting?withdrawal=insufficient"
@@ -280,11 +281,12 @@ export default async function CaptainAccountingPage() {
     }
 
     /* =========================
-       إنشاء طلب السحب فقط
+       إنشاء طلب السحب
 
        لا يتم خصم الرصيد هنا.
 
-       الخصم يتم فقط عند موافقة الأدمن.
+       الخصم يتم فقط عند موافقة
+       الإدارة.
     ========================= */
 
     const {
@@ -333,6 +335,42 @@ export default async function CaptainAccountingPage() {
             جميع مستحقاتك وطلباتك.
           </p>
         </div>
+
+        {/* =========================
+            WITHDRAWAL SUCCESS MESSAGE
+        ========================= */}
+
+        {params.withdrawal === "success" && (
+          <div className="mb-6 rounded-2xl border border-green-200 bg-green-50 p-5 text-green-800 shadow-sm">
+            <h3 className="font-black">
+              تم إرسال طلب السحب بنجاح
+            </h3>
+
+            <p className="mt-2">
+              سيتم تحويل مستحقاتك بعد تدقيق الإدارة والموافقة على الطلب.
+            </p>
+          </div>
+        )}
+
+        {/* =========================
+            PENDING WITHDRAWAL MESSAGE
+        ========================= */}
+
+        {params.withdrawal === "pending" && (
+          <div className="mb-6 rounded-2xl border border-yellow-200 bg-yellow-50 p-5 text-yellow-800 shadow-sm">
+            <h3 className="font-black">
+              لديك طلب سحب قيد المراجعة
+            </h3>
+
+            <p className="mt-2">
+              لا يمكنك إرسال طلب سحب جديد حتى تقوم الإدارة بالموافقة أو رفض الطلب الحالي.
+            </p>
+          </div>
+        )}
+
+        {/* =========================
+            STATISTICS
+        ========================= */}
 
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
 
@@ -405,13 +443,17 @@ export default async function CaptainAccountingPage() {
 
             {isProducer && (
               <p className="mt-2 text-sm text-gray-400">
-                هذا هو رصيدك الحالي قبل خصم طلبات السحب المعلقة.
+                هذا هو رصيدك الحالي.
               </p>
             )}
 
           </div>
 
         </div>
+
+        {/* =========================
+            WITHDRAWAL
+        ========================= */}
 
         <div className="mt-8 rounded-2xl bg-gradient-to-br from-[#102F59] to-[#071E3D] p-6 text-white shadow-xl">
 
@@ -425,21 +467,29 @@ export default async function CaptainAccountingPage() {
 
               <p className="mt-2 text-sm text-white/70">
                 {isProducer
-                  ? "يتم خصم الرصيد فقط بعد موافقة الإدارة على طلب السحب."
+                  ? hasPendingWithdrawal
+                    ? "لديك طلب سحب قيد المراجعة حالياً."
+                    : "سيتم خصم الرصيد وتحويل المستحقات بعد موافقة الإدارة على الطلب."
                   : "الكابتن لا يسحب من المحفظة."}
               </p>
 
               <div className="mt-5">
 
                 <p className="text-sm text-white/60">
-                  المتاح للسحب
+                  {hasPendingWithdrawal
+                    ? "المبلغ في الطلب الحالي"
+                    : "المتاح للسحب"}
                 </p>
 
                 <div
                   className="mt-1 text-4xl font-black"
                   dir="ltr"
                 >
-                  {availableForWithdrawal.toFixed(3)}
+                  {hasPendingWithdrawal
+                    ? Number(
+                        pendingWithdrawal?.amount ?? 0
+                      ).toFixed(3)
+                    : availableForWithdrawal.toFixed(3)}
 
                   <span className="mr-2 text-lg">
                     JD
@@ -452,7 +502,7 @@ export default async function CaptainAccountingPage() {
 
             <form
               action={
-                isProducer
+                isProducer && !hasPendingWithdrawal
                   ? requestWithdrawal
                   : undefined
               }
@@ -475,6 +525,7 @@ export default async function CaptainAccountingPage() {
                   required
                   disabled={
                     !isProducer ||
+                    hasPendingWithdrawal ||
                     availableForWithdrawal <= 0
                   }
                   className="min-w-0 flex-1 rounded-xl border border-white/20 bg-white px-4 py-3 text-left font-bold text-[#13294B] outline-none focus:border-[#F5B82E] disabled:cursor-not-allowed disabled:opacity-60"
@@ -484,16 +535,27 @@ export default async function CaptainAccountingPage() {
                   type="submit"
                   disabled={
                     !isProducer ||
+                    hasPendingWithdrawal ||
                     availableForWithdrawal <= 0
                   }
                   className="rounded-xl bg-[#F5B82E] px-5 py-3 font-black text-[#071E3D] transition hover:bg-[#ffc94d] disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  طلب السحب
+                  {hasPendingWithdrawal
+                    ? "طلب قيد المراجعة"
+                    : "طلب السحب"}
                 </button>
 
               </div>
 
               {isProducer &&
+                hasPendingWithdrawal && (
+                  <p className="mt-3 text-sm font-bold text-yellow-300">
+                    يوجد لديك طلب سحب قيد المراجعة. لا يمكنك إرسال طلب جديد حتى يتم اتخاذ قرار بشأنه.
+                  </p>
+                )}
+
+              {isProducer &&
+                !hasPendingWithdrawal &&
                 availableForWithdrawal <= 0 && (
                   <p className="mt-3 text-sm font-bold text-red-300">
                     لا يوجد رصيد متاح للسحب حالياً.
@@ -510,6 +572,10 @@ export default async function CaptainAccountingPage() {
 
           </div>
         </div>
+
+        {/* =========================
+            WITHDRAWALS
+        ========================= */}
 
         {allWithdrawals.length > 0 && (
           <div className="mt-8 overflow-hidden rounded-xl bg-white shadow">
@@ -599,6 +665,10 @@ export default async function CaptainAccountingPage() {
             </div>
           </div>
         )}
+
+        {/* =========================
+            ORDERS
+        ========================= */}
 
         <div className="mt-8 overflow-hidden rounded-xl bg-white shadow">
 
@@ -712,6 +782,10 @@ export default async function CaptainAccountingPage() {
 
           </div>
         </div>
+
+        {/* =========================
+            FINANCIAL TRANSACTIONS
+        ========================= */}
 
         <div className="mt-8 overflow-hidden rounded-xl bg-white shadow">
 
