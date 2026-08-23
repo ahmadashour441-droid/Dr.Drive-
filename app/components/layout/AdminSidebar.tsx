@@ -9,6 +9,7 @@ import {
   Wallet,
   CreditCard,
   Settings,
+  CircleAlert,
 } from "lucide-react";
 
 const items = [
@@ -31,6 +32,11 @@ const items = [
     name: "طلبات شحن الرصيد",
     href: "/admin/recharge",
     icon: CreditCard,
+  },
+  {
+    name: "الأرصدة السالبة",
+    href: "/admin/negative-balances",
+    icon: CircleAlert,
   },
   {
     name: "المحاسبة",
@@ -92,9 +98,9 @@ export default function AdminSidebar({
           return (
 
             <Link
-  key={item.href}
-  href={item.href}
-  onClick={onNavigate}
+              key={item.href}
+              href={item.href}
+              onClick={onNavigate}
               className={`flex items-center gap-3 rounded-xl px-4 py-3 transition-all ${
                 active
                   ? "bg-blue-600"
