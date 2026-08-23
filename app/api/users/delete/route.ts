@@ -1,104 +1,190 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabaseServer } from "@/lib/supabaseServer";
+import { createClient } from "@supabase/supabase-js";
 
-export async function POST(req: NextRequest) {
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
+export async function POST(
+  request: NextRequest
+) {
   try {
-    const body = await req.json();
-    const id = Number(body.id);
+    const body = await request.json();
 
-    if (!Number.isInteger(id)) {
+    const userId = Number(body.userId);
+
+    if (
+      !Number.isInteger(userId) ||
+      userId <= 0
+    ) {
       return NextResponse.json(
-        { error: "معرف المستخدم غير صحيح" },
-        { status: 400 }
+        {
+          error: "معرف المستخدم غير صحيح",
+        },
+        {
+          status: 400,
+        }
       );
     }
 
-    const { data: existing, error: findError } = await supabaseServer
+    /*
+     * نتأكد أولاً أن المستخدم موجود
+     */
+
+    const {
+      data: user,
+      error: userError,
+    } = await supabase
       .from("Users")
-      .select("id, full_name")
-      .eq("id", id)
-      .maybeSingle();
+      .select(
+        "id, full_name, is_admin"
+      )
+      .eq("id", userId)
+      .single();
 
-    if (findError) {
+    if (userError || !user) {
       return NextResponse.json(
-        { error: findError.message },
-        { status: 500 }
+        {
+          error: "المستخدم غير موجود",
+        },
+        {
+          status: 404,
+        }
       );
     }
 
-    if (!existing) {
-      return NextResponse.json(
-        { error: "المستخدم غير موجود" },
-        { status: 404 }
-      );
-    }
+    /*
+     * حماية حساب المدير
+     */
 
-    // لا نحذف طلبات أو حركات مالية مرتبطة بالمستخدم.
-    // إذا كان لديه بيانات محاسبية، نرجع رسالة واضحة بدل تخريب السجلات.
-    const { count: transactionCount, error: transactionCheckError } =
-      await supabaseServer
-        .from("BalanceTransactions")
-        .select("id", { count: "exact", head: true })
-        .eq("user_id", id);
-
-    if (transactionCheckError) {
-      return NextResponse.json(
-        { error: transactionCheckError.message },
-        { status: 500 }
-      );
-    }
-
-    const { count: orderCount, error: orderCheckError } =
-      await supabaseServer
-        .from("Orders")
-        .select("id", { count: "exact", head: true })
-        .or(`captain_id.eq.${id},producer_id.eq.${id}`);
-
-    if (orderCheckError) {
-      return NextResponse.json(
-        { error: orderCheckError.message },
-        { status: 500 }
-      );
-    }
-
-    if ((transactionCount ?? 0) > 0 || (orderCount ?? 0) > 0) {
+    if (user.is_admin) {
       return NextResponse.json(
         {
           error:
-            "لا يمكن حذف هذا المستخدم لأنه مرتبط بطلبات أو حركات مالية محفوظة. يمكنك إيقافه بدل حذفه.",
+            "لا يمكن حذف حساب المدير",
         },
-        { status: 409 }
+        {
+          status: 403,
+        }
       );
     }
 
-    const { data: deleted, error } = await supabaseServer
+    /*
+     * فحص الطلبات غير المغلقة.
+     *
+     * المستخدم قد يكون:
+     * - كابتن
+     * - منتج
+     */
+
+    const {
+      data: openOrders,
+      error: ordersError,
+    } = await supabase
+      .from("Orders")
+      .select(
+        "id, captain_id, producer_id"
+      )
+      .eq("is_settled", false)
+      .or(
+        `captain_id.eq.${userId},producer_id.eq.${userId}`
+      );
+
+    if (ordersError) {
+      throw ordersError;
+    }
+
+    if (
+      openOrders &&
+      openOrders.length > 0
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "لا يمكن حذف المستخدم لأنه لديه طلبات غير مغلقة. قم بتسوية أو إغلاق الأسبوع أولاً.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    /*
+     * فحص الحركات المالية غير المغلقة.
+     */
+
+    const {
+      data: openTransactions,
+      error: transactionsError,
+    } = await supabase
+      .from("BalanceTransactions")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("is_settled", false);
+
+    if (transactionsError) {
+      throw transactionsError;
+    }
+
+    if (
+      openTransactions &&
+      openTransactions.length > 0
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "لا يمكن حذف المستخدم لأنه لديه حركات مالية غير مغلقة.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    /*
+     * حذف المستخدم فقط.
+     *
+     * الطلبات والحركات المغلقة تبقى محفوظة.
+     *
+     * بسبب ON DELETE SET NULL
+     * سيتم فقط إزالة ارتباط المستخدم
+     * من السجلات القديمة.
+     */
+
+    const {
+      error: deleteError,
+    } = await supabase
       .from("Users")
       .delete()
-      .eq("id", id)
-      .select("id")
-      .maybeSingle();
+      .eq("id", userId);
 
-    if (error) {
-      console.error("DELETE USER ERROR:", error);
-      return NextResponse.json(
-        { error: error.message },
-        { status: 500 }
-      );
+    if (deleteError) {
+      throw deleteError;
     }
 
-    if (!deleted) {
-      return NextResponse.json(
-        { error: "لم يتم حذف المستخدم" },
-        { status: 404 }
-      );
-    }
+    return NextResponse.json({
+      success: true,
 
-    return NextResponse.json({ success: true });
+      message:
+        "تم حذف المستخدم بنجاح مع الاحتفاظ بالسجل المالي والطلبات المغلقة",
+    });
+
   } catch (error: any) {
-    console.error("DELETE USER SERVER ERROR:", error);
+    console.error(
+      "DELETE USER ERROR:",
+      error
+    );
+
     return NextResponse.json(
-      { error: error?.message ?? "حدث خطأ أثناء حذف المستخدم" },
-      { status: 500 }
+      {
+        error:
+          error?.message ??
+          "حدث خطأ أثناء حذف المستخدم",
+      },
+      {
+        status: 500,
+      }
     );
   }
 }
